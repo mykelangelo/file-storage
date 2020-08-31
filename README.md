@@ -1,3 +1,17 @@
+# How to run
+1) download latest elasticsarch from https://www.elastic.co/downloads/past-releases#elasticsearch
+2) unarchive the binaries
+3) run bin/elasticsearch from terminal
+0) open root dir ("file-storage") in a different terminal window
+1) build with command "./mvnw clean install" (no Maven needed)
+2) open target dir ("cd target")
+3) run with command "java -jar file-storage-1.0-SNAPSHOT-jar-with-dependencies.jar" 
+# How to run integration tests
+0) install docker from https://docs.docker.com/docker-for-mac/install/
+1) launch docker
+2) in terminal, run docker pull docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+3) in terminal, run docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+4) run tests
 # Description
 # File Storage REST service
 Let's imagine we are developing an application that allows us to store files in the cloud, categorize them with tags and search through them.
