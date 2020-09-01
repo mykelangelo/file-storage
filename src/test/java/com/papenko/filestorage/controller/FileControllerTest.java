@@ -8,14 +8,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -160,46 +157,44 @@ class FileControllerTest {
 
     @Test
     void findByTags_shouldReturnOkAndEmptyPage_whenNoFilesWerePresentInDb() {
-        doReturn(Page.empty()).when(fileService).findPageByTags(null, PageRequest.of(0, 10));
+        doReturn(new SlimFilePage(0, List.of())).when(fileService).findPageByTags(null, PageRequest.of(0, 10));
 
-        final ResponseEntity<Page<File>> responseEntity = fileController.findByTags(null, 0, 10);
+        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(null, 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertTrue(responseEntity.hasBody());
-        assertTrue(responseEntity.getBody().isEmpty());
+        assertEquals(0, responseEntity.getBody().getTotal());
     }
 
     @Test
     void findByTags_shouldReturnOkAndPageWithTwoFiles_whenThoseAreTheOnlyFilesInDb() {
-        final File file0 = new File("id0", "name0", 0L, null);
-        final File file1 = new File("id1", "name1", 1L, null);
-        final PageImpl<File> files = new PageImpl<>(List.of(file0, file1));
+        var file0 = new File("id0", "name0", 0L, null);
+        var file1 = new File("id1", "name1", 1L, null);
+        var files = new SlimFilePage(2, List.of(file0, file1));
         doReturn(files).when(fileService).findPageByTags(null, PageRequest.of(0, 10));
 
-        final ResponseEntity<Page<File>> responseEntity = fileController.findByTags(null, 0, 10);
+        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(null, 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertTrue(responseEntity.hasBody());
-        assertFalse(responseEntity.getBody().isEmpty());
-        assertEquals(2, responseEntity.getBody().getTotalElements());
-        assertEquals(List.of(file0, file1), responseEntity.getBody().get().collect(Collectors.toList()));
+        assertEquals(2, responseEntity.getBody().getTotal());
+        assertEquals(List.of(file0, file1), responseEntity.getBody().getPage());
     }
 
     @Test
     void findByTags_shouldReturnOkAndPageWithOneFiles_whenThisIsTheOnlyFileWithSuchTagsInDb() {
-        final File file0 = new File("id0", "name0", 0L, List.of("super", "duper"));
-        final PageImpl<File> files = new PageImpl<>(List.of(file0));
+        var file0 = new File("id0", "name0", 0L, List.of("super", "duper"));
+        var files = new SlimFilePage(1, List.of(file0));
         doReturn(files).when(fileService).findPageByTags(List.of("super", "duper"), PageRequest.of(0, 10));
 
-        final ResponseEntity<Page<File>> responseEntity = fileController.findByTags(List.of("super", "duper"), 0, 10);
+        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(List.of("super", "duper"), 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertTrue(responseEntity.hasBody());
-        assertFalse(responseEntity.getBody().isEmpty());
-        assertEquals(1, responseEntity.getBody().getTotalElements());
-        assertEquals(List.of(file0), responseEntity.getBody().get().collect(Collectors.toList()));
+        assertEquals(1, responseEntity.getBody().getTotal());
+        assertEquals(List.of(file0), responseEntity.getBody().getPage());
     }
 }

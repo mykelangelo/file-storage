@@ -3,7 +3,6 @@ package com.papenko.filestorage.controller;
 import com.papenko.filestorage.dto.*;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.service.FileService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,9 +61,9 @@ public class FileController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<File>> findByTags(@RequestParam(required = false) List<String> tags,
-                                                 @RequestParam(required = false, defaultValue = "0") int page,
-                                                 @RequestParam(required = false, defaultValue = "10") int size) {
+    public ResponseEntity<SlimFilePage> findByTags(@RequestParam(required = false) List<String> tags,
+                                                   @RequestParam(required = false, defaultValue = "0") int page,
+                                                   @RequestParam(required = false, defaultValue = "10") int size) {
         return ResponseEntity.ok().body(fileService.findPageByTags(tags, PageRequest.of(page, size)));
     }
 }

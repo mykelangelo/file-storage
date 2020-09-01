@@ -126,7 +126,7 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
-    void deleteTags_shouldBadRequestAndErrorMessage_whenDocumentIsFoundBySuchIdButDoesNotContainTagsSpecified()
+    void deleteTags_shouldReturnBadRequestAndErrorMessage_whenDocumentIsFoundBySuchIdButDoesNotContainTagsSpecified()
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
@@ -165,12 +165,8 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(get("/file?tags=tag1,tag2,tag3"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
-                        "{\"content\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
-                                "[\"tag1\",\"tag2\",\"tag3\"]}],\"pageable\":{\"sort\":{\"sorted\":false," +
-                                "\"unsorted\":true,\"empty\":true},\"pageNumber\":0,\"pageSize\":10,\"offset\":0," +
-                                "\"paged\":true,\"unpaged\":false},\"totalPages\":1,\"totalElements\":1," +
-                                "\"last\":true,\"number\":0,\"numberOfElements\":1,\"sort\":{\"sorted\":false," +
-                                "\"unsorted\":true,\"empty\":true},\"size\":10,\"first\":true,\"empty\":false}"));
+                        "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag1\",\"tag2\",\"tag3\"]}]}"));
     }
 
     @Test
@@ -189,11 +185,7 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(get("/file?tags=tag1,tag2,tag3"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
-                        "{\"content\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
-                                "[\"tag1\",\"tag2\",\"tag3\"]}],\"pageable\":{\"sort\":{\"sorted\":false," +
-                                "\"unsorted\":true,\"empty\":true},\"pageNumber\":0,\"pageSize\":10,\"offset\":0," +
-                                "\"paged\":true,\"unpaged\":false},\"totalPages\":1,\"totalElements\":1," +
-                                "\"last\":true,\"number\":0,\"numberOfElements\":1,\"sort\":{\"sorted\":false," +
-                                "\"unsorted\":true,\"empty\":true},\"size\":10,\"first\":true,\"empty\":false}"));
+                        "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag1\",\"tag2\",\"tag3\"]}]}"));
     }
 }

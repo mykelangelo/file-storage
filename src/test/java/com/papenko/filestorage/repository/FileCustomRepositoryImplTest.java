@@ -1,7 +1,6 @@
 package com.papenko.filestorage.repository;
 
 import com.papenko.filestorage.entity.File;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,8 +18,9 @@ import org.springframework.data.elasticsearch.core.query.Query;
 
 import java.util.List;
 
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -37,14 +37,17 @@ class FileCustomRepositoryImplTest {
     void getQueryBuilder_shouldCreateEmptyNativeQueryBuilder_whenTagsListIsNull() {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null);
 
-        assertNull(query.getFilter());
+        assertEquals(boolQuery(), query.getFilter());
     }
 
     @Test
     void getQueryBuilder_shouldCreatePoperyNativeQueryBuilder_whenTagsListIsNotNull() {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"));
 
-        assertEquals(QueryBuilders.regexpQuery("tags", "(?=tag1)(?=tag2)"), query.getFilter());
+        assertEquals(boolQuery()
+                .must(termQuery("tags", "tag1"))
+                .must(termQuery("tags", "tag2")),
+                query.getFilter());
     }
 
     @Test

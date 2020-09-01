@@ -1,6 +1,7 @@
 package com.papenko.filestorage.service;
 
 import com.papenko.filestorage.dto.FileValidityCheckReport;
+import com.papenko.filestorage.dto.SlimFilePage;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.repository.FileCustomRepository;
 import com.papenko.filestorage.repository.FileRepository;
@@ -59,7 +60,7 @@ public class FileService {
             return false;
         }
         final File file = fileOptional.get();
-        if (!file.getTags().containsAll(tags)) {
+        if (file.getTags() == null || !file.getTags().containsAll(tags)) {
             return false;
         }
         file.setTags(file.getTags().stream()
@@ -68,7 +69,8 @@ public class FileService {
         return true;
     }
 
-    public Page<File> findPageByTags(List<String> tags, Pageable pageable) {
-        return fileCustomRepository.findAllByTagsContainingAllIn(tags, pageable);
+    public SlimFilePage findPageByTags(List<String> tags, Pageable pageable) {
+        Page<File> found = fileCustomRepository.findAllByTagsContainingAllIn(tags, pageable);
+        return new SlimFilePage(found.getTotalElements(), found.getContent());
     }
 }
