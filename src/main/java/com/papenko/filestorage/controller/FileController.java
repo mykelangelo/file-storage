@@ -41,8 +41,7 @@ public class FileController {
     @PostMapping("{ID}/tags")
     public ResponseEntity<SuccessStatus> postTags(@PathVariable(name = "ID") String id,
                                                   @RequestBody List<String> tags) {
-        if (fileService.isPresentById(id)) {
-            fileService.updateTags(id, tags);
+        if (fileService.updateTags(id, tags)) {
             return ResponseEntity.ok(new SuccessStatus(true));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, "file not found"));

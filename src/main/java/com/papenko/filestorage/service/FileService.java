@@ -49,9 +49,19 @@ public class FileService {
         return fileRepository.existsById(id);
     }
 
-    public void updateTags(String id, List<String> tags) {
+    /**
+     * @param id   id of document ({@link File})
+     * @param tags tags to be saved in given document
+     * @return {@code true} in case we updated tags successfully,
+     * {@code false} in case if the file was not found (may be the case if you use this service correctly)
+     */
+    public boolean updateTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
-        fileOptional.ifPresent(file -> file.setTags(tags));
+        if (fileOptional.isEmpty()) {
+            return false;
+        }
+        fileRepository.save(fileOptional.get().withTags(tags));
+        return true;
     }
 
     /**
@@ -59,7 +69,7 @@ public class FileService {
      * @param tags tags to delete
      * @return {@code true} in case we deleted tags successfully,
      * {@code false} in case document didn't contain all the tags for deletion
-     * or if the file was not found (must not happen if you use service correctly)
+     * or if the file was not found (must not happen if you use this service correctly)
      */
     public boolean deleteTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
@@ -70,9 +80,10 @@ public class FileService {
         if (file.getTags() == null || !file.getTags().containsAll(tags)) {
             return false;
         }
-        file.setTags(file.getTags().stream()
+        final File withTags = file.withTags(file.getTags().stream()
                 .filter(tag -> !tags.contains(tag))
                 .collect(Collectors.toList()));
+        fileRepository.save(withTags);
         return true;
     }
 

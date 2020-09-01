@@ -52,7 +52,6 @@ public class FileControllerIntegrationTest {
 
         assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
         final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
-        assertThat(searchHits).isNotEmpty();
         final Iterator<SearchHit<File>> iterator = searchHits.iterator();
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
@@ -85,6 +84,7 @@ public class FileControllerIntegrationTest {
         indexQuery.setId("id0");
         indexQuery.setObject(new File("id0", "name", 0L, null));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
 
         mockMvc.perform(delete("/file/{ID}", "id0"))
                 .andExpect(status().isOk())
@@ -108,12 +108,22 @@ public class FileControllerIntegrationTest {
         indexQuery.setId("id0");
         indexQuery.setObject(new File("id0", "name", 0L, null));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
 
         mockMvc.perform(post("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"success\":true}"));
+
+        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
+        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        assertTrue(iterator.hasNext());
+        final File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        var tags = List.of("tag1", "tag2", "tag3");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, tags), "id");
+        assertThat(nextFile.getId()).isNotBlank();
     }
 
     @Test
@@ -146,12 +156,21 @@ public class FileControllerIntegrationTest {
         indexQuery.setId("id0");
         indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
 
         mockMvc.perform(delete("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"success\":true}"));
+
+        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
+        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        assertTrue(iterator.hasNext());
+        final File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, List.of()), "id");
+        assertThat(nextFile.getId()).isNotBlank();
     }
 
     @Test

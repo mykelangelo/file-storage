@@ -86,7 +86,7 @@ class FileControllerTest {
 
     @Test
     void postTags_shouldReturnNotFoundAndErrorMessage_whenNoFileWithSuchIdIsFound() {
-        doReturn(false).when(fileService).isPresentById("id0");
+        doReturn(false).when(fileService).updateTags("id0", List.of("tag1", "tag2"));
 
         ResponseEntity<SuccessStatus> responseEntity = controller.postTags("id0", List.of("tag1", "tag2"));
 
@@ -100,8 +100,7 @@ class FileControllerTest {
 
     @Test
     void postTags_shouldReturnOk_whenFileWithSuchIdIsFound() {
-        doReturn(true).when(fileService).isPresentById("id0");
-        doNothing().when(fileService).updateTags("id0", List.of("tag1", "tag2"));
+        doReturn(true).when(fileService).updateTags("id0", List.of("tag1", "tag2"));
 
         ResponseEntity<SuccessStatus> responseEntity = controller.postTags("id0", List.of("tag1", "tag2"));
 

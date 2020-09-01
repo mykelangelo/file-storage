@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FileTest {
 
@@ -34,16 +34,16 @@ class FileTest {
     }
 
     @Test
-    void tagsListIsImmutable_shouldPerformCopyingInSetter() {
+    void tagsListIsImmutable_shouldPerformCopyingInWITHTAGS() {
         List<String> tags = new ArrayList<>();
         tags.add("text");
         File file = new File("id0", "filename.txt", 1L, null);
-        file.setTags(tags);
+        File withTags = file.withTags(tags);
 
         tags.add("yolo");
 
-        assertEquals(1, file.getTags().size());
-        assertEquals("text", file.getTags().get(0));
+        assertEquals(2, withTags.getTags().size());
+        assertThat(withTags.getTags()).containsExactlyInAnyOrder("document", "text");
     }
 
     @Test

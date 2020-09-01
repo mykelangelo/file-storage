@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -94,13 +93,13 @@ class FileServiceTest {
     @Test
     void updateTags_shouldUpdateTagsById_whenFileExistsBySuchId() {
         when(fileRepository.findById("id")).thenReturn(Optional.of(new File("id", "name", 0L, null)));
+        final List<String> tags = List.of("tag1", "tag2", "tag3");
 
-        fileService.updateTags("id", List.of("tag1", "tag2", "tag3"));
+        fileService.updateTags("id", tags);
 
         verify(fileRepository).findById("id");
-        final Optional<File> fileOptional = fileRepository.findById("id");
-        assertTrue(fileOptional.isPresent());
-        assertEquals(List.of("tag1", "tag2", "tag3"), fileOptional.get().getTags());
+        verify(fileRepository).save(eq(new File("id", "name", 0L, null).withTags(tags)));
+
     }
 
     @Test
@@ -148,7 +147,8 @@ class FileServiceTest {
         final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
 
         assertTrue(actual);
-        assertThat(file.getTags()).isEmpty();
+        verify(fileRepository).findById("id");
+        verify(fileRepository).save(eq(file.withTags(List.of())));
     }
 
     @Test
@@ -159,7 +159,7 @@ class FileServiceTest {
         final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
 
         assertTrue(actual);
-        assertEquals(1, file.getTags().size());
-        assertEquals("tag3", file.getTags().get(0));
+        verify(fileRepository).findById("id");
+        verify(fileRepository).save(eq(file.withTags(List.of("tag3"))));
     }
 }
