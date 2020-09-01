@@ -34,7 +34,7 @@ class FileTest {
     }
 
     @Test
-    void tagsListIsImmutable_shouldPerformCopyingInWITHTAGS() {
+    void tagsListIsImmutable_shouldPerformCopyingInWithTags() {
         List<String> tags = new ArrayList<>();
         tags.add("text");
         File file = new File("id0", "filename.txt", 1L, null);

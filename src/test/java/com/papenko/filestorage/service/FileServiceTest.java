@@ -2,6 +2,10 @@ package com.papenko.filestorage.service;
 
 import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.entity.File;
+import com.papenko.filestorage.exception.FileDelete404Exception;
+import com.papenko.filestorage.exception.FileDeleteTags400Exception;
+import com.papenko.filestorage.exception.FileDeleteTags404Exception;
+import com.papenko.filestorage.exception.FileUpdateTags404Exception;
 import com.papenko.filestorage.repository.FileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -66,28 +71,22 @@ class FileServiceTest {
     }
 
     @Test
+    void delete_shouldThrowFileDelete404Exception_whenNoFileIsFoundBySuchId() {
+        assertThatExceptionOfType(FileDelete404Exception.class)
+                .isThrownBy(() -> fileService.delete("id0"))
+                .withMessage("file not found");
+
+        verify(fileRepository).existsById("id0");
+        verifyNoMoreInteractions(fileRepository);
+    }
+
+    @Test
     void delete_shouldCallDeleteByIdMethodOfRepository() {
+        when(fileRepository.existsById("id0")).thenReturn(true);
+
         fileService.delete("id0");
 
         verify(fileRepository).deleteById("id0");
-    }
-
-    @Test
-    void isPresentById_shouldReturnTrue_whenFileIsFoundInRepository() {
-        doReturn(true).when(fileRepository).existsById("id0");
-
-        final boolean presentById = fileService.isPresentById("id0");
-
-        assertTrue(presentById);
-    }
-
-    @Test
-    void isPresentById_shouldReturnFalse_whenFileIsNotFoundInRepository() {
-        doReturn(false).when(fileRepository).existsById("id0");
-
-        final boolean presentById = fileService.isPresentById("id0");
-
-        assertFalse(presentById);
     }
 
     @Test
@@ -103,40 +102,43 @@ class FileServiceTest {
     }
 
     @Test
-    void updateTags_shouldNotUpdateTagsById_whenNoFileExistsBySuchId() {
+    void updateTags_shouldThrowFileUpdateTags404Exception_whenNoFileExistsBySuchId() {
         when(fileRepository.findById("id")).thenReturn(Optional.empty());
 
-        fileService.updateTags("id", List.of("tag1", "tag2", "tag3"));
+        assertThatExceptionOfType(FileUpdateTags404Exception.class)
+                .isThrownBy(() -> fileService.updateTags("id", List.of("tag1", "tag2", "tag3")))
+                .withMessage("file not found");
 
         verifyNoMoreInteractions(fileRepository);
     }
 
     @Test
-    void deleteTags_shouldReturnFalse_whenNoFileIsFoundById() {
+    void deleteTags_shouldThrowFileDeleteTags404Exception_whenNoFileIsFoundById() {
         when(fileRepository.findById("id")).thenReturn(Optional.empty());
 
-        final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
+        assertThatExceptionOfType(FileDeleteTags404Exception.class)
+                .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
+                .withMessage("file not found");
 
         verifyNoMoreInteractions(fileRepository);
-        assertFalse(actual);
     }
 
     @Test
-    void deleteTags_shouldReturnFalse_whenNoTagsArePresentInFoundFile() {
+    void deleteTags_shouldThrowFileDeleteTags400Exception_whenNoTagsArePresentInFoundFile() {
         when(fileRepository.findById("id")).thenReturn(Optional.of(new File("id", "name", 0L, null)));
 
-        final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
-
-        assertFalse(actual);
+        assertThatExceptionOfType(FileDeleteTags400Exception.class)
+                .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
+                .withMessage("tag not found on file");
     }
 
     @Test
     void deleteTags_shouldReturnFalse_whenNotAllTagsArePresentInFoundFile() {
         when(fileRepository.findById("id")).thenReturn(Optional.of(new File("id", "name", 0L, List.of("tag1"))));
 
-        final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
-
-        assertFalse(actual);
+        assertThatExceptionOfType(FileDeleteTags400Exception.class)
+                .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
+                .withMessage("tag not found on file");
     }
 
     @Test
@@ -144,9 +146,8 @@ class FileServiceTest {
         final File file = new File("id", "name", 0L, List.of("tag1", "tag2"));
         when(fileRepository.findById("id")).thenReturn(Optional.of(file));
 
-        final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
+        fileService.deleteTags("id", List.of("tag1", "tag2"));
 
-        assertTrue(actual);
         verify(fileRepository).findById("id");
         verify(fileRepository).save(eq(file.withTags(List.of())));
     }
@@ -156,9 +157,8 @@ class FileServiceTest {
         final File file = new File("id", "name", 0L, List.of("tag1", "tag2", "tag3"));
         when(fileRepository.findById("id")).thenReturn(Optional.of(file));
 
-        final boolean actual = fileService.deleteTags("id", List.of("tag1", "tag2"));
+        fileService.deleteTags("id", List.of("tag1", "tag2"));
 
-        assertTrue(actual);
         verify(fileRepository).findById("id");
         verify(fileRepository).save(eq(file.withTags(List.of("tag3"))));
     }

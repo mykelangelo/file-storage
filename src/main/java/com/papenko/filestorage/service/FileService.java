@@ -3,6 +3,7 @@ package com.papenko.filestorage.service;
 import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.dto.SlimFilePage;
 import com.papenko.filestorage.entity.File;
+import com.papenko.filestorage.exception.*;
 import com.papenko.filestorage.repository.FileCustomRepository;
 import com.papenko.filestorage.repository.FileRepository;
 import org.apache.logging.log4j.util.Strings;
@@ -25,10 +26,14 @@ public class FileService {
     }
 
     public File uploadFile(File file) {
+        final FileValidityCheckReport report = isFileValid(file);
+        if (!report.isValid()) {
+            throw new FileUpload400Exception(report.getErrorMessage());
+        }
         return fileRepository.save(file);
     }
 
-    public FileValidityCheckReport isFileValid(File file) {
+    FileValidityCheckReport isFileValid(File file) {
         if (Strings.isBlank(file.getName())) {
             return new FileValidityCheckReport(false, "file name is missing");
         }
@@ -42,26 +47,18 @@ public class FileService {
     }
 
     public void delete(String id) {
+        if (!fileRepository.existsById(id)) {
+            throw new FileDelete404Exception();
+        }
         fileRepository.deleteById(id);
     }
 
-    public boolean isPresentById(String id) {
-        return fileRepository.existsById(id);
-    }
-
-    /**
-     * @param id   id of document ({@link File})
-     * @param tags tags to be saved in given document
-     * @return {@code true} in case we updated tags successfully,
-     * {@code false} in case if the file was not found (may be the case if you use this service correctly)
-     */
-    public boolean updateTags(String id, List<String> tags) {
+    public void updateTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
-            return false;
+            throw new FileUpdateTags404Exception();
         }
         fileRepository.save(fileOptional.get().withTags(tags));
-        return true;
     }
 
     /**
@@ -71,20 +68,19 @@ public class FileService {
      * {@code false} in case document didn't contain all the tags for deletion
      * or if the file was not found (must not happen if you use this service correctly)
      */
-    public boolean deleteTags(String id, List<String> tags) {
+    public void deleteTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
-            return false;
+            throw new FileDeleteTags404Exception();
         }
         final File file = fileOptional.get();
         if (file.getTags() == null || !file.getTags().containsAll(tags)) {
-            return false;
+            throw new FileDeleteTags400Exception();
         }
         final File withTags = file.withTags(file.getTags().stream()
                 .filter(tag -> !tags.contains(tag))
                 .collect(Collectors.toList()));
         fileRepository.save(withTags);
-        return true;
     }
 
     public SlimFilePage findPageByTagsAndName(List<String> tags, Pageable pageable, String name) {

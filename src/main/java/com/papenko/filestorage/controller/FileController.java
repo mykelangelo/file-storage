@@ -2,6 +2,7 @@ package com.papenko.filestorage.controller;
 
 import com.papenko.filestorage.dto.*;
 import com.papenko.filestorage.entity.File;
+import com.papenko.filestorage.exception.*;
 import com.papenko.filestorage.service.FileService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -21,41 +22,53 @@ public class FileController {
 
     @PostMapping
     public ResponseEntity<ResponseEntityBody> upload(@RequestBody File file) {
-        FileValidityCheckReport fileValidityCheckReport = fileService.isFileValid(file);
-        if (!fileValidityCheckReport.isValid()) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(false, fileValidityCheckReport.getErrorMessage()));
-        }
         final File uploadedFile = fileService.uploadFile(file);
         return ResponseEntity.ok(new Id(uploadedFile.getId()));
     }
 
+    @ExceptionHandler(FileUpload400Exception.class)
+    public ResponseEntity<ErrorMessage> handleException(FileUpload400Exception e) {
+        return ResponseEntity.badRequest().body(new ErrorMessage(false, e.getMessage()));
+    }
+
     @DeleteMapping("{ID}")
     public ResponseEntity<SuccessStatus> delete(@PathVariable(name = "ID") String id) {
-        if (fileService.isPresentById(id)) {
-            fileService.delete(id);
-            return ResponseEntity.ok(new SuccessStatus(true));
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, "file not found"));
+        fileService.delete(id);
+        return ResponseEntity.ok(new SuccessStatus(true));
+    }
+
+    @ExceptionHandler(FileDelete404Exception.class)
+    public ResponseEntity<ErrorMessage> handleException(FileDelete404Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, e.getMessage()));
     }
 
     @PostMapping("{ID}/tags")
     public ResponseEntity<SuccessStatus> postTags(@PathVariable(name = "ID") String id,
                                                   @RequestBody List<String> tags) {
-        if (fileService.updateTags(id, tags)) {
-            return ResponseEntity.ok(new SuccessStatus(true));
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, "file not found"));
+        fileService.updateTags(id, tags);
+        return ResponseEntity.ok(new SuccessStatus(true));
+    }
+
+    @ExceptionHandler(FileUpdateTags404Exception.class)
+    public ResponseEntity<ErrorMessage> handleException(FileUpdateTags404Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, e.getMessage()));
     }
 
     @DeleteMapping("{ID}/tags")
     public ResponseEntity<SuccessStatus> deleteTags(@PathVariable(name = "ID") String id,
                                                     @RequestBody List<String> tags) {
-        if (fileService.isPresentById(id)) {
-            return fileService.deleteTags(id, tags) ?
-                    ResponseEntity.ok(new SuccessStatus(true)) :
-                    ResponseEntity.badRequest().body(new ErrorMessage(false, "tag not found on file"));
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, "file not found"));
+        fileService.deleteTags(id, tags);
+        return ResponseEntity.ok(new SuccessStatus(true));
+    }
+
+    @ExceptionHandler(FileDeleteTags404Exception.class)
+    public ResponseEntity<ErrorMessage> handleException(FileDeleteTags404Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, e.getMessage()));
+    }
+
+    @ExceptionHandler(FileDeleteTags400Exception.class)
+    public ResponseEntity<ErrorMessage> handleException(FileDeleteTags400Exception e) {
+        return ResponseEntity.badRequest().body(new ErrorMessage(false, e.getMessage()));
     }
 
     @GetMapping
