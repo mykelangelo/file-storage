@@ -1,16 +1,16 @@
 package com.papenko.filestorage.dto;
 
 public class FileValidityCheckReport {
-    private final boolean isValid;
+    private final boolean valid;
     private final String errorMessage;
 
-    public FileValidityCheckReport(boolean isValid, String errorMessage) {
-        this.isValid = isValid;
+    public FileValidityCheckReport(boolean valid, String errorMessage) {
+        this.valid = valid;
         this.errorMessage = errorMessage;
     }
 
     public boolean isValid() {
-        return isValid;
+        return valid;
     }
 
     public String getErrorMessage() {
