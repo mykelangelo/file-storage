@@ -54,6 +54,13 @@ public class FileService {
         fileOptional.ifPresent(file -> file.setTags(tags));
     }
 
+    /**
+     * @param id   id of document ({@link File})
+     * @param tags tags to delete
+     * @return {@code true} in case we deleted tags successfully,
+     * {@code false} in case document didn't contain all the tags for deletion
+     * or if the file was not found (must not happen if you use service correctly)
+     */
     public boolean deleteTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
