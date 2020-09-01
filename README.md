@@ -1,4 +1,4 @@
-# How to run
+# How to build and run
 1) open root dir ("file-storage")
 2) install docker-compose
 3) in terminal, run docker-compose up
