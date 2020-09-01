@@ -7,14 +7,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.SearchHitsIterator;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -29,12 +27,12 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
 
     @Override
     public Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable, String name) {
-        return convertToPage(operations.search(getQueryBuilder(tags, name), File.class), pageable);
+        try (var closeableIterator = operations.searchForStream(getQueryBuilder(tags, name), File.class)) {
+            return convertToPage(closeableIterator, pageable);
+        }
     }
 
-    Page<File> convertToPage(SearchHits<File> search, Pageable pageable) {
-        Iterator<SearchHit<File>> iterator = search.iterator();
-
+    Page<File> convertToPage(SearchHitsIterator<File> iterator, Pageable pageable) {
         for (int i = 0; i < pageable.getOffset() && iterator.hasNext(); i++) {
             iterator.next();
         }
