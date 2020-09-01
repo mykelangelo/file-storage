@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class FileControllerIntegrationTest {
-    private static final Pattern ID_JSON = Pattern.compile("\\{\"ID\":\"[-a-zA-Z0-9]+\"}");
+    private static final Pattern ID_JSON = Pattern.compile("\\{\"ID\":\"[-_a-zA-Z0-9]+\"}");
     @Autowired
     private MockMvc mockMvc;
 
