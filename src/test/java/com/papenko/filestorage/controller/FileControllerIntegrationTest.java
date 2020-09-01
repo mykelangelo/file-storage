@@ -242,7 +242,7 @@ public class FileControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":1,\"page\":[{\"id\":\"id1\",\"name\":\"name1.vid\",\"size\":1," +
-                                "\"tags\":null}]}"));
+                                "\"tags\":[]}]}"));
     }
 
     @Test

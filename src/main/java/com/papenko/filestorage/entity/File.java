@@ -30,7 +30,7 @@ public class File {
         }
         List<String> newTags;
         if (firstTag.isEmpty()) {
-            newTags = tags;
+            newTags = tags == null ? List.of() : tags;
         } else {
             newTags = tags == null ?
                     new ArrayList<>(1) :

@@ -67,7 +67,7 @@ public class FileService {
             throw new FileDeleteTags404Exception();
         }
         final File file = fileOptional.get();
-        if (file.getTags() == null || !file.getTags().containsAll(tags)) {
+        if (!file.getTags().containsAll(tags)) {
             throw new FileDeleteTags400Exception();
         }
         final File withTags = file.withTags(file.getTags().stream()
