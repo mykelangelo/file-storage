@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,7 +47,6 @@ public class FileControllerIntegrationTest {
         final MvcResult mvcResult = mockMvc.perform(post("/file")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"file1.txt\", \"size\": 0, \"tags\": [\"text\"]}"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -68,7 +66,6 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(post("/file")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"\", \"size\": 0}"))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("{\"success\":false,\"error\":\"file name is missing\"}"));
 
@@ -78,7 +75,6 @@ public class FileControllerIntegrationTest {
     @Test
     void delete_shouldReturnNotFoundAndErrorMessage_whenNoDocumentIsFoundBySuchId() throws Exception {
         mockMvc.perform(delete("/file/{ID}", "id0"))
-                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().json("{\"success\":false,\"error\":\"file not found\"}"));
     }
@@ -91,7 +87,6 @@ public class FileControllerIntegrationTest {
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
 
         mockMvc.perform(delete("/file/{ID}", "id0"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"success\":true}"));
 
@@ -103,7 +98,6 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(post("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
-                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().json("{\"success\":false,\"error\":\"file not found\"}"));
     }
@@ -118,7 +112,6 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(post("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"success\":true}"));
     }
@@ -128,7 +121,6 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(delete("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
-                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().json("{\"success\":false,\"error\":\"file not found\"}"));
     }
@@ -144,7 +136,6 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(delete("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("{\"success\":false,\"error\":\"tag not found on file\"}"));
     }
@@ -159,21 +150,50 @@ public class FileControllerIntegrationTest {
         mockMvc.perform(delete("/file/{ID}/tags", "id0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"tag1\", \"tag2\", \"tag3\"]"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"success\":true}"));
     }
 
     @Test
-    void getByTags_shouldReturnOkAndPageWithSingleFile_whenOnlyOneDocumentIsFoundByTags() throws Exception {
+    void getByTags_shouldReturnOkAndPageWithSingleFile_whenOnlyMatchingDocumentExistsInDb() throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
         indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
 
-        mockMvc.perform(get("/file"))
-                .andDo(print())
+        mockMvc.perform(get("/file?tags=tag1,tag2,tag3"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"success\":true}"));
+                .andExpect(content().json(
+                        "{\"content\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag1\",\"tag2\",\"tag3\"]}],\"pageable\":{\"sort\":{\"sorted\":false," +
+                                "\"unsorted\":true,\"empty\":true},\"pageNumber\":0,\"pageSize\":10,\"offset\":0," +
+                                "\"paged\":true,\"unpaged\":false},\"totalPages\":1,\"totalElements\":1," +
+                                "\"last\":true,\"number\":0,\"numberOfElements\":1,\"sort\":{\"sorted\":false," +
+                                "\"unsorted\":true,\"empty\":true},\"size\":10,\"first\":true,\"empty\":false}"));
+    }
+
+    @Test
+    void getByTags_shouldReturnOkAndPageWithSingleFile_whenOnlyOneDocumentIsFoundByTagsButThereIsAnotherOneInDb()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        indexQuery = new IndexQuery();
+        indexQuery.setId("id1");
+        indexQuery.setObject(new File("id1", "name1", 1L, List.of("tag4", "tag2", "tag3")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(get("/file?tags=tag1,tag2,tag3"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(
+                        "{\"content\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag1\",\"tag2\",\"tag3\"]}],\"pageable\":{\"sort\":{\"sorted\":false," +
+                                "\"unsorted\":true,\"empty\":true},\"pageNumber\":0,\"pageSize\":10,\"offset\":0," +
+                                "\"paged\":true,\"unpaged\":false},\"totalPages\":1,\"totalElements\":1," +
+                                "\"last\":true,\"number\":0,\"numberOfElements\":1,\"sort\":{\"sorted\":false," +
+                                "\"unsorted\":true,\"empty\":true},\"size\":10,\"first\":true,\"empty\":false}"));
     }
 }
