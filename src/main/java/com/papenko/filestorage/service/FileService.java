@@ -69,8 +69,8 @@ public class FileService {
         return true;
     }
 
-    public SlimFilePage findPageByTags(List<String> tags, Pageable pageable) {
-        Page<File> found = fileCustomRepository.findAllByTagsContainingAllIn(tags, pageable);
+    public SlimFilePage findPageByTagsAndName(List<String> tags, Pageable pageable, String name) {
+        Page<File> found = fileCustomRepository.findAllByTagsContainingAllIn(tags, pageable, name);
         return new SlimFilePage(found.getTotalElements(), found.getContent());
     }
 }

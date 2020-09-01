@@ -18,8 +18,7 @@ import org.springframework.data.elasticsearch.core.query.Query;
 
 import java.util.List;
 
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -29,25 +28,43 @@ import static org.mockito.Mockito.verify;
 class FileCustomRepositoryImplTest {
     @InjectMocks
     @Spy
-    FileCustomRepositoryImpl fileCustomRepository;
+    private FileCustomRepositoryImpl fileCustomRepository;
     @Mock
-    ElasticsearchOperations operations;
+    private ElasticsearchOperations operations;
 
     @Test
-    void getQueryBuilder_shouldCreateEmptyNativeQueryBuilder_whenTagsListIsNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null);
+    void getQueryBuilder_shouldCreateEmptyNativeQueryBuilder_whenTagsListIsNullAndNameIsNull() {
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, null);
 
         assertEquals(boolQuery(), query.getFilter());
     }
 
     @Test
-    void getQueryBuilder_shouldCreatePoperyNativeQueryBuilder_whenTagsListIsNotNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"));
+    void getQueryBuilder_shouldCreatePoperyNativeQueryBuilder_whenTagsListIsNotNullAndNameIsNull() {
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), null);
 
         assertEquals(boolQuery()
-                .must(termQuery("tags", "tag1"))
-                .must(termQuery("tags", "tag2")),
+                        .must(termQuery("tags", "tag1"))
+                        .must(termQuery("tags", "tag2")),
                 query.getFilter());
+    }
+
+    @Test
+    void getQueryBuilder_shouldCreatePoperyNativeQueryBuilder_whenTagsListIsNotNullAndNameIsNotNull() {
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), "name");
+
+        assertEquals(boolQuery()
+                        .must(termQuery("tags", "tag1"))
+                        .must(termQuery("tags", "tag2"))
+                        .must(regexpQuery("name", ".*name.*")),
+                query.getFilter());
+    }
+
+    @Test
+    void getQueryBuilder_shouldCreatePoperyNativeQueryBuilder_whenTagsListIsNullAndNameIsNotNull() {
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, "name");
+
+        assertEquals(boolQuery().must(regexpQuery("name", ".*name.*")), query.getFilter());
     }
 
     @Test
@@ -58,7 +75,7 @@ class FileCustomRepositoryImplTest {
         doReturn(searchHits).when(operations).search((Query) any(), any()); //regexp query: (?=.+tag1)(?=.+tag2).+
 
         Page<File> actual = fileCustomRepository
-                .findAllByTagsContainingAllIn(List.of("tag1", "tag2"), PageRequest.of(0, 10));
+                .findAllByTagsContainingAllIn(List.of("tag1", "tag2"), PageRequest.of(0, 10), null);
 
         verify(fileCustomRepository).convertToPage(searchHits, PageRequest.of(0, 10));
         Page<File> expected = fileCustomRepository.convertToPage(searchHits, PageRequest.of(0, 10));

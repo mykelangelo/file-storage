@@ -9,5 +9,5 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface FileCustomRepository {
-    Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable);
+    Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable, String name);
 }

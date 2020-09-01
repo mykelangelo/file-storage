@@ -2,6 +2,7 @@ package com.papenko.filestorage.repository;
 
 import com.papenko.filestorage.entity.File;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,20 +17,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Repository
 public class FileCustomRepositoryImpl implements FileCustomRepository {
     private final ElasticsearchOperations operations;
 
-    public FileCustomRepositoryImpl(ElasticsearchOperations operations) {
+    public FileCustomRepositoryImpl(@Qualifier("elasticsearchOperations") ElasticsearchOperations operations) {
         this.operations = operations;
     }
 
     @Override
-    public Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable) {
-        return convertToPage(operations.search(getQueryBuilder(tags), File.class), pageable);
+    public Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable, String name) {
+        return convertToPage(operations.search(getQueryBuilder(tags, name), File.class), pageable);
     }
 
     Page<File> convertToPage(SearchHits<File> search, Pageable pageable) {
@@ -48,7 +48,7 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
         return new PageImpl<>(result, pageable, result.size());
     }
 
-    NativeSearchQuery getQueryBuilder(List<String> tags) {
+    NativeSearchQuery getQueryBuilder(List<String> tags, String name) {
         NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder();
         BoolQueryBuilder boolQueryBuilder = boolQuery();
 
@@ -56,6 +56,10 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
             for (String tag : tags) {
                 boolQueryBuilder.must(termQuery("tags", tag));
             }
+        }
+
+        if (name != null) {
+            boolQueryBuilder.must(regexpQuery("name", ".*" + name + ".*"));
         }
 
         searchQueryBuilder.withFilter(boolQueryBuilder);

@@ -41,7 +41,7 @@ public class FileController {
 
     @PostMapping("{ID}/tags")
     public ResponseEntity<SuccessStatus> postTags(@PathVariable(name = "ID") String id,
-                                                       @RequestBody List<String> tags) {
+                                                  @RequestBody List<String> tags) {
         if (fileService.isPresentById(id)) {
             fileService.updateTags(id, tags);
             return ResponseEntity.ok(new SuccessStatus(true));
@@ -51,7 +51,7 @@ public class FileController {
 
     @DeleteMapping("{ID}/tags")
     public ResponseEntity<SuccessStatus> deleteTags(@PathVariable(name = "ID") String id,
-                                                       @RequestBody List<String> tags) {
+                                                    @RequestBody List<String> tags) {
         if (fileService.isPresentById(id)) {
             return fileService.deleteTags(id, tags) ?
                     ResponseEntity.ok(new SuccessStatus(true)) :
@@ -61,9 +61,10 @@ public class FileController {
     }
 
     @GetMapping
-    public ResponseEntity<SlimFilePage> findByTags(@RequestParam(required = false) List<String> tags,
-                                                   @RequestParam(required = false, defaultValue = "0") int page,
-                                                   @RequestParam(required = false, defaultValue = "10") int size) {
-        return ResponseEntity.ok().body(fileService.findPageByTags(tags, PageRequest.of(page, size)));
+    public ResponseEntity<SlimFilePage> findByTagsAndName(@RequestParam(required = false) List<String> tags,
+                                                          @RequestParam(required = false) String q,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok().body(fileService.findPageByTagsAndName(tags, PageRequest.of(page, size), q));
     }
 }

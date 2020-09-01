@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FileControllerTest {
     @InjectMocks
-    private FileController fileController;
+    private FileController controller;
     @Mock
     private FileService fileService;
 
@@ -30,7 +30,7 @@ class FileControllerTest {
         File file = new File(null, null, 0L, null);
         when(fileService.isFileValid(file)).thenReturn(new FileValidityCheckReport(false, "file name is missing"));
 
-        final ResponseEntity<ResponseEntityBody> responseEntity = fileController.upload(file);
+        final ResponseEntity<ResponseEntityBody> responseEntity = controller.upload(file);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -47,7 +47,7 @@ class FileControllerTest {
         when(fileService.isFileValid(newFile)).thenReturn(new FileValidityCheckReport(true, null));
         doReturn(fileWithId).when(fileService).uploadFile(newFile);
 
-        final ResponseEntity<ResponseEntityBody> responseEntity = fileController.upload(newFile);
+        final ResponseEntity<ResponseEntityBody> responseEntity = controller.upload(newFile);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -60,7 +60,7 @@ class FileControllerTest {
     void delete_shouldReturnNotFoundAndErrorMessage_whenNoFileWithSuchIdIsFound() {
         doReturn(false).when(fileService).isPresentById("id0");
 
-        final ResponseEntity<SuccessStatus> responseEntity = fileController.delete("id0");
+        final ResponseEntity<SuccessStatus> responseEntity = controller.delete("id0");
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
@@ -75,7 +75,7 @@ class FileControllerTest {
         doReturn(true).when(fileService).isPresentById("id0");
         doNothing().when(fileService).delete("id0");
 
-        final ResponseEntity<SuccessStatus> responseEntity = fileController.delete("id0");
+        final ResponseEntity<SuccessStatus> responseEntity = controller.delete("id0");
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -88,7 +88,7 @@ class FileControllerTest {
     void postTags_shouldReturnNotFoundAndErrorMessage_whenNoFileWithSuchIdIsFound() {
         doReturn(false).when(fileService).isPresentById("id0");
 
-        ResponseEntity<SuccessStatus> responseEntity = fileController.postTags("id0", List.of("tag1", "tag2"));
+        ResponseEntity<SuccessStatus> responseEntity = controller.postTags("id0", List.of("tag1", "tag2"));
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
@@ -103,7 +103,7 @@ class FileControllerTest {
         doReturn(true).when(fileService).isPresentById("id0");
         doNothing().when(fileService).updateTags("id0", List.of("tag1", "tag2"));
 
-        ResponseEntity<SuccessStatus> responseEntity = fileController.postTags("id0", List.of("tag1", "tag2"));
+        ResponseEntity<SuccessStatus> responseEntity = controller.postTags("id0", List.of("tag1", "tag2"));
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -117,7 +117,7 @@ class FileControllerTest {
         doReturn(true).when(fileService).isPresentById("id0");
         doReturn(true).when(fileService).deleteTags("id0", List.of("tag1", "tag2"));
 
-        ResponseEntity<SuccessStatus> responseEntity = fileController.deleteTags("id0", List.of("tag1", "tag2"));
+        ResponseEntity<SuccessStatus> responseEntity = controller.deleteTags("id0", List.of("tag1", "tag2"));
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -130,7 +130,7 @@ class FileControllerTest {
     void deleteTags_shouldReturnNotFound_whenNoFileWithSuchIdIsFound() {
         doReturn(false).when(fileService).isPresentById("id0");
 
-        ResponseEntity<SuccessStatus> responseEntity = fileController.deleteTags("id0", List.of("tag1", "tag2"));
+        ResponseEntity<SuccessStatus> responseEntity = controller.deleteTags("id0", List.of("tag1", "tag2"));
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
@@ -145,7 +145,7 @@ class FileControllerTest {
         doReturn(true).when(fileService).isPresentById("id0");
         doReturn(false).when(fileService).deleteTags("id0", List.of("tag1", "tag2"));
 
-        ResponseEntity<SuccessStatus> responseEntity = fileController.deleteTags("id0", List.of("tag1", "tag2"));
+        ResponseEntity<SuccessStatus> responseEntity = controller.deleteTags("id0", List.of("tag1", "tag2"));
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -157,9 +157,9 @@ class FileControllerTest {
 
     @Test
     void findByTags_shouldReturnOkAndEmptyPage_whenNoFilesWerePresentInDb() {
-        doReturn(new SlimFilePage(0, List.of())).when(fileService).findPageByTags(null, PageRequest.of(0, 10));
+        doReturn(new SlimFilePage(0, List.of())).when(fileService).findPageByTagsAndName(null, PageRequest.of(0, 10), null);
 
-        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(null, 0, 10);
+        final ResponseEntity<SlimFilePage> responseEntity = controller.findByTagsAndName(null, null, 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -172,9 +172,9 @@ class FileControllerTest {
         var file0 = new File("id0", "name0", 0L, null);
         var file1 = new File("id1", "name1", 1L, null);
         var files = new SlimFilePage(2, List.of(file0, file1));
-        doReturn(files).when(fileService).findPageByTags(null, PageRequest.of(0, 10));
+        doReturn(files).when(fileService).findPageByTagsAndName(null, PageRequest.of(0, 10), null);
 
-        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(null, 0, 10);
+        final ResponseEntity<SlimFilePage> responseEntity = controller.findByTagsAndName(null, null, 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -185,11 +185,27 @@ class FileControllerTest {
 
     @Test
     void findByTags_shouldReturnOkAndPageWithOneFiles_whenThisIsTheOnlyFileWithSuchTagsInDb() {
-        var file0 = new File("id0", "name0", 0L, List.of("super", "duper"));
+        final List<String> tags = List.of("super", "duper");
+        var file0 = new File("id0", "name0", 0L, tags);
         var files = new SlimFilePage(1, List.of(file0));
-        doReturn(files).when(fileService).findPageByTags(List.of("super", "duper"), PageRequest.of(0, 10));
+        doReturn(files).when(fileService).findPageByTagsAndName(tags, PageRequest.of(0, 10), null);
 
-        final ResponseEntity<SlimFilePage> responseEntity = fileController.findByTags(List.of("super", "duper"), 0, 10);
+        ResponseEntity<SlimFilePage> responseEntity = controller.findByTagsAndName(tags, null, 0, 10);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertTrue(responseEntity.hasBody());
+        assertEquals(1, responseEntity.getBody().getTotal());
+        assertEquals(List.of(file0), responseEntity.getBody().getPage());
+    }
+
+    @Test
+    void findByTags_shouldReturnOkAndPageWithOneFile_whenThisIsTheOnlyFileWithMatchingNameInDb() {
+        var file0 = new File("id0", "name0", 0L, null);
+        var files = new SlimFilePage(1, List.of(file0));
+        doReturn(files).when(fileService).findPageByTagsAndName(null, PageRequest.of(0, 10), "name");
+
+        ResponseEntity<SlimFilePage> responseEntity = controller.findByTagsAndName(null, "name", 0, 10);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
