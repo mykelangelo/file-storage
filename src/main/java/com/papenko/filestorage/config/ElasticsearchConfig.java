@@ -32,7 +32,7 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     private String elasticHost;
 
     @Value("#{systemEnvironment['ELASTIC_PORT']}")
-    private int elasticPort;
+    private Integer elasticPort;
 
     @Value("#{systemEnvironment['ELASTIC_PROTOCOL']}")
     private String elasticProtocol;
