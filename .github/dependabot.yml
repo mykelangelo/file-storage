@@ -1,7 +1,7 @@
 version: 1
 
 updates:
-  - package-ecoystem: maven
+    package-ecoystem: maven
     directory: "/"
     schedule: daily
     time: "6:00"
