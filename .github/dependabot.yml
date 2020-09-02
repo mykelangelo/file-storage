@@ -7,6 +7,6 @@ updates:
       interval: daily
     time: "6:00"
     timezone: Europe/Kiev #Kyiv
-  open-pull-requests-limit: 10
-  assignees:
-    - "mykelangelo"
+    open-pull-requests-limit: 10
+    assignees:
+      - "mykelangelo"
