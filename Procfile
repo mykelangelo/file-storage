@@ -1,1 +1,1 @@
-release: ./mvnw docker:start localhost
+release: ./mvnw docker:start -host=localhost
