@@ -15,14 +15,14 @@
 0) open root dir ("file-storage")
 1) in terminal, run "./mvnw docker:stop" (no Maven or Docker needed)
 
-# How to run integration tests (version 1 - with docker-compose)
+# How to run integration tests (v1: with docker-compose)
 0) open root dir ("file-storage")
 1) install docker-compose (for Mac: "brew install docker-compose")
 2) in terminal, run "docker-compose up"
 3) run tests
 4) in terminal, run "docker-compose down"
 
-# How to run integration tests (version 2 - without docker-compose)
+# How to run integration tests (v2: without docker-compose)
 0) open root dir ("file-storage")
 1) in terminal, run "./mvnw clean docker:start install" (no Maven or Docker needed)
 2) open target dir ("cd target")
