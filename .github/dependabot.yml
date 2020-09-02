@@ -1,10 +1,12 @@
 version: 1
 
 updates:
-    package-ecoystem: maven
+  - package-ecoystem: maven
     directory: "/"
-    schedule: daily
+    schedule:
+      interval: daily
     time: "6:00"
     timezone: Europe/Kiev #Kyiv
   open-pull-requests-limit: 10
-  assignees: "mykelangelo"
+  assignees:
+    - "mykelangelo"
