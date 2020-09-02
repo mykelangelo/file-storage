@@ -14,7 +14,13 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "com.papenko.filestorage.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchConfig.class);
-    
+
+    @Value("#{systemEnvironment['ELASTIC_USERNAME']}")
+    private String elasticUsername;
+
+    @Value("#{systemEnvironment['ELASTIC_PASSWORD']}")
+    private String elasticPassword;
+
     @Value("#{systemEnvironment['ELASTIC_HOST_AND_PORT']}")
     private String elasticHostAndPort;
 
@@ -25,7 +31,11 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     public RestHighLevelClient elasticsearchClient() {
         if ("production".equals(profile)) {
             LOGGER.info("Using production environment");
-            return RestClients.create(ClientConfiguration.create(elasticHostAndPort)).rest();
+            return RestClients.create(
+                    ClientConfiguration.builder()
+                            .connectedTo(elasticHostAndPort)
+                            .withBasicAuth(elasticUsername, elasticPassword)
+                            .build()).rest();
         }
         LOGGER.info("Using default local environment");
         return RestClients.create(ClientConfiguration.localhost()).rest();
