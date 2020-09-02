@@ -1,3 +1,8 @@
+<img src="https://camo.githubusercontent.com/35a144257b9aec7d472244f972d918c3926d5518/68747470733a2f2f6170692e646570656e6461626f742e636f6d2f6261646765732f7374617475733f686f73743d676974687562267265706f3d79737331342f6d757369637368617265" alt="Dependabot Status" data-canonical-src="https://api.dependabot.com/badges/status?host=github&amp;repo=yss14/musicshare" style="max-width:100%;">
+
+# File Storage
+
+
 # How to only build (with db shutdown)
 0) open root dir ("file-storage")
 1) in terminal, run "./mvnw clean docker:start install docker:stop" (no Maven or Docker needed)
