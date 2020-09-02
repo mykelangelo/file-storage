@@ -3,7 +3,7 @@
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=mykelangelo_file-storage&metric=alert_status)](https://sonarcloud.io/dashboard?id=mykelangelo_file-storage) 
 [![Known Vulnerabilities](https://snyk.io/test/github/mykelangelo/file-storage/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/mykelangelo/file-storage?targetFile=pom.xml)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmykelangelo%2Ffile-storage.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmykelangelo%2Ffile-storage?ref=badge_shield)
-[![HitCount](http://hits.dwyl.io/mykelangelo/file-storage.svg)](http://hits.dwyl.io/mykelangelo/file-storage)
+[![HitCount](http://hits.dwyl.com/mykelangelo/file-storage.svg)](http://hits.dwyl.com/mykelangelo/file-storage)
 [![Awesome Badges](https://img.shields.io/badge/badges-awesome-violet.svg)](https://github.com/Naereen/badges)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-goldenrod.svg?style=shield)](http://makeapullrequest.com) <img src="https://camo.githubusercontent.com/35a144257b9aec7d472244f972d918c3926d5518/68747470733a2f2f6170692e646570656e6461626f742e636f6d2f6261646765732f7374617475733f686f73743d676974687562267265706f3d79737331342f6d757369637368617265" alt="Dependabot Status" data-canonical-src="https://api.dependabot.com/badges/status?host=github&amp;repo=yss14/musicshare" style="max-width:100%;">
 
