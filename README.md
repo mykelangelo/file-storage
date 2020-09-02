@@ -8,7 +8,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-goldenrod.svg?style=shield)](http://makeapullrequest.com) <img src="https://camo.githubusercontent.com/35a144257b9aec7d472244f972d918c3926d5518/68747470733a2f2f6170692e646570656e6461626f742e636f6d2f6261646765732f7374617475733f686f73743d676974687562267265706f3d79737331342f6d757369637368617265" alt="Dependabot Status" style="max-width:100%;"> <img src="http://monitoshi.lexoyo.me/badge/1599065764333-1969" alt="Uptime Status" style="max-width:100%;"> 
 [![Online API](https://img.shields.io/badge/online-API-blue.svg)](https://simple-file-storage.herokuapp.com/file)
 
-# File Storage
+# Simple File Storage
 
 
 # How to only build (with db shutdown)
