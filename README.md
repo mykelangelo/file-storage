@@ -1,16 +1,35 @@
-# How to build and run
-1) open root dir ("file-storage")
-2) install docker-compose
-3) in terminal, run docker-compose up
+# How to only build (with db shutdown)
+0) open root dir ("file-storage")
+1) in terminal, run "./mvnw clean docker:start install docker:stop" (no Maven or Docker needed)
+
+# How to build and run (without db shutdown)
 0) open root dir ("file-storage") in a different terminal window
-1) build with command "./mvnw clean install" (no Maven needed)
+1) in terminal, run "./mvnw clean docker:start install" (no Maven or Docker needed)
 2) open target dir ("cd target")
-3) run with command "java -jar file-storage-0.0.1-SNAPSHOT.jar" 
-# How to run integration tests
-1) open root dir ("file-storage")
-2) install docker-compose
-3) in terminal, run docker-compose up
+3) run with command "java -jar file-storage-0.0.1-SNAPSHOT.jar"
+
+# How to check if app is up
+0) In browser open "localhost:8080/health/ping", and you should see "pong"
+
+# How to shut down db
+0) open root dir ("file-storage")
+1) in terminal, run "./mvnw docker:stop" (no Maven or Docker needed)
+
+# How to run integration tests (version 1 - with docker-compose)
+0) open root dir ("file-storage")
+1) install docker-compose (for Mac: "brew install docker-compose")
+2) in terminal, run "docker-compose up"
+3) run tests
+4) in terminal, run "docker-compose down"
+
+# How to run integration tests (version 2 - without docker-compose)
+0) open root dir ("file-storage")
+1) in terminal, run "./mvnw clean docker:start install" (no Maven or Docker needed)
+2) open target dir ("cd target")
+3) in terminal, run "java -jar file-storage-0.0.1-SNAPSHOT.jar"
 4) run tests
+5) in terminal, run "./mvnw docker:stop" (no Maven or Docker needed)
+
 # Description
 # File Storage REST service
 Let's imagine we are developing an application that allows us to store files in the cloud, categorize them with tags and search through them.
