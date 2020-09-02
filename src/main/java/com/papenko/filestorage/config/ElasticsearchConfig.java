@@ -13,7 +13,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     private static final String bonsaiHostAndPort = "pepper-121090209.us-east-1.bonsaisearch.net:443";
 
-    @Value("${SPRING_PROFILES_ACTIVE}")
+    @Value("#{systemEnvironment['SPRING_PROFILES_ACTIVE']}")
     private String profile;
 
     @Override
