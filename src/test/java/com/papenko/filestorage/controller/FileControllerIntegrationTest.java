@@ -190,6 +190,22 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
+    void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneMatchingByTagsWithSpacesDocumentExistsInDb()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag 1", "tag 2", "tag 3")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(get("/file?tags=tag%201,tag%202,tag%203"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(
+                        "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag 1\",\"tag 2\",\"tag 3\"]}]}"));
+    }
+
+    @Test
     void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneDocumentIsFoundByTagsButThereIsAnotherOneInDb()
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
@@ -222,6 +238,22 @@ public class FileControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0," +
+                                "\"tags\":[\"document\"]}]}"));
+    }
+
+    @Test
+    void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneMatchingByNameWithWhitespacesDocumentExistsInDb()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "yolo name0.txt", 0L, null));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(get("/file?q=yolo%20name"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(
+                        "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"yolo name0.txt\",\"size\":0," +
                                 "\"tags\":[\"document\"]}]}"));
     }
 

@@ -34,8 +34,8 @@ class FileCustomRepositoryImplTest {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), null);
 
         assertEquals(boolQuery()
-                        .must(termQuery("tags", "tag1"))
-                        .must(termQuery("tags", "tag2")),
+                        .must(queryStringQuery("tag1").field("tags"))
+                        .must(queryStringQuery("tag2").field("tags")),
                 query.getFilter());
     }
 
@@ -44,9 +44,10 @@ class FileCustomRepositoryImplTest {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), "name");
 
         assertEquals(boolQuery()
-                        .must(termQuery("tags", "tag1"))
-                        .must(termQuery("tags", "tag2"))
-                        .must(regexpQuery("name", ".*name.*")),
+                        .must(queryStringQuery("tag1").field("tags"))
+                        .must(queryStringQuery("tag2").field("tags"))
+                        .should(regexpQuery("name", ".*name.*"))
+                        .should(queryStringQuery("name").field("name")),
                 query.getFilter());
     }
 
@@ -54,6 +55,8 @@ class FileCustomRepositoryImplTest {
     void getQueryBuilder_shouldCreateProperNativeQueryBuilder_whenTagsListIsNullAndNameIsNotNull() {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, "name");
 
-        assertEquals(boolQuery().must(regexpQuery("name", ".*name.*")), query.getFilter());
+        assertEquals(boolQuery()
+                .should(regexpQuery("name", ".*name.*"))
+                .should(queryStringQuery("name").field("name")), query.getFilter());
     }
 }

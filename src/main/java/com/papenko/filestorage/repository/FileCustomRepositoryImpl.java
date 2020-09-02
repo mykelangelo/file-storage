@@ -52,12 +52,13 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
 
         if (tags != null) {
             for (String tag : tags) {
-                boolQueryBuilder.must(termQuery("tags", tag));
+                boolQueryBuilder.must(queryStringQuery(tag).field("tags"));
             }
         }
 
         if (name != null) {
-            boolQueryBuilder.must(regexpQuery("name", ".*" + name + ".*"));
+            boolQueryBuilder.should(regexpQuery("name", ".*" + name + ".*"));
+            boolQueryBuilder.should(queryStringQuery(name).field("name"));
         }
 
         searchQueryBuilder.withFilter(boolQueryBuilder);
