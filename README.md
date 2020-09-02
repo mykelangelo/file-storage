@@ -1,4 +1,5 @@
 
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=mykelangelo_file-storage&metric=alert_status)](https://sonarcloud.io/dashboard?id=mykelangelo_file-storage) 
 [![Known Vulnerabilities](https://snyk.io/test/github/mykelangelo/file-storage/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/mykelangelo/file-storage?targetFile=pom.xml)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmykelangelo%2Ffile-storage.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmykelangelo%2Ffile-storage?ref=badge_shield)
 [![HitCount](http://hits.dwyl.io/mykelangelo/file-storage.svg)](http://hits.dwyl.io/mykelangelo/file-storage)
