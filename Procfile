@@ -1,1 +1,1 @@
-release: mvn docker:start
+release: ./mvnw docker:start
