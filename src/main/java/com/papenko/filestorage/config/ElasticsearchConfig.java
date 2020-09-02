@@ -11,7 +11,8 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @Configuration
 @EnableElasticsearchRepositories(basePackages = "com.papenko.filestorage.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
-    private static final String bonsaiHostAndPort = "pepper-121090209.us-east-1.bonsaisearch.net:443";
+    @Value("#{systemEnvironment['ELASTIC_HOST_AND_PORT']}")
+    private String elasticHostAndPort;
 
     @Value("#{systemEnvironment['SPRING_PROFILES_ACTIVE']}")
     private String profile;
@@ -19,7 +20,7 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     @Override
     public RestHighLevelClient elasticsearchClient() {
         if ("production".equals(profile)) {
-            return RestClients.create(ClientConfiguration.create(bonsaiHostAndPort)).rest();
+            return RestClients.create(ClientConfiguration.create(elasticHostAndPort)).rest();
         }
         return RestClients.create(ClientConfiguration.localhost()).rest();
     }
