@@ -34,7 +34,7 @@ public class FileService {
     }
 
     FileValidityCheckReport isFileValid(File file) {
-        if (file.getName() == null || file.getName().trim().isEmpty()) {
+        if (file.getName() == null || file.getName().stripLeading().isEmpty()) {
             return new FileValidityCheckReport(false, "file name is missing");
         }
         if (file.getSize() == null) {
