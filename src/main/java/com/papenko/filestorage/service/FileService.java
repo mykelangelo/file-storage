@@ -7,7 +7,6 @@ import com.papenko.filestorage.exception.FileOperation400Exception;
 import com.papenko.filestorage.exception.FileOperation404Exception;
 import com.papenko.filestorage.repository.FileCustomRepository;
 import com.papenko.filestorage.repository.FileRepository;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class FileService {
     }
 
     FileValidityCheckReport isFileValid(File file) {
-        if (Strings.isBlank(file.getName())) {
+        if (file.getName() == null || file.getName().trim().isEmpty()) {
             return new FileValidityCheckReport(false, "file name is missing");
         }
         if (file.getSize() == null) {
