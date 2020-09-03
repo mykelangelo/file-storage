@@ -3,9 +3,6 @@ package com.papenko.filestorage.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,13 +10,10 @@ import java.util.Objects;
 public class File {
     @Id
     private final String id;
-    @NotBlank(message = "file name is missing")
     private final String name;
     /**
      * file size in bytes
      */
-    @NotNull(message = "file size is missing")
-    @Min(value = 0, message = "file size is negative")
     private final Long size;
     private final List<String> tags;
 

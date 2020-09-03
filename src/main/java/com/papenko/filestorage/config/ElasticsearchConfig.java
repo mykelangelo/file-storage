@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.client.RestClients;
 import org.springframework.data.elasticsearch.config.AbstractElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
@@ -55,6 +53,6 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
             return new RestHighLevelClient(restClientBuilder);
         }
         LOGGER.info("Using default local environment");
-        return RestClients.create(ClientConfiguration.localhost()).rest();
+        return new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")));
     }
 }

@@ -1,9 +1,6 @@
 package com.papenko.filestorage.controller;
 
-import com.papenko.filestorage.dto.ErrorMessage;
-import com.papenko.filestorage.dto.Id;
-import com.papenko.filestorage.dto.ResponseEntityBody;
-import com.papenko.filestorage.dto.SlimFilePage;
+import com.papenko.filestorage.dto.*;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.exception.FileOperation400Exception;
 import com.papenko.filestorage.exception.FileOperation404Exception;
@@ -35,8 +32,8 @@ public class FileController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseEntityBody> upload(@Valid @RequestBody File file) {
-        final File uploadedFile = fileService.uploadFile(file);
+    public ResponseEntity<ResponseEntityBody> upload(@Valid @RequestBody FileDto fileDto) {
+        final File uploadedFile = fileService.uploadFile(fileDto.toFile());
         return ResponseEntity.ok(new Id(uploadedFile.getId()));
     }
 
