@@ -33,17 +33,25 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
     }
 
     Page<File> convertToPage(SearchHitsIterator<File> iterator, Pageable pageable) {
+        int total = 0;
+
         for (int i = 0; i < pageable.getOffset() && iterator.hasNext(); i++) {
             iterator.next();
+            total++;
         }
 
         List<File> result = new ArrayList<>(pageable.getPageSize());
 
-        for (int i = 0; i < pageable.getPageSize() && iterator.hasNext(); i++) {
-            result.add(iterator.next().getContent());
+        for (int i = 0; iterator.hasNext(); i++) {
+            if (i < pageable.getPageSize()) {
+                result.add(iterator.next().getContent());
+            } else {
+                iterator.next();
+            }
+            total++;
         }
 
-        return new PageImpl<>(result, pageable, result.size());
+        return new PageImpl<>(result, pageable, total);
     }
 
     NativeSearchQuery getQueryBuilder(List<String> tags, String name) {

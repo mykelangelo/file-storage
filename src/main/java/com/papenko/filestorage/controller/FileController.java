@@ -1,6 +1,9 @@
 package com.papenko.filestorage.controller;
 
-import com.papenko.filestorage.dto.*;
+import com.papenko.filestorage.dto.ErrorMessage;
+import com.papenko.filestorage.dto.Id;
+import com.papenko.filestorage.dto.ResponseEntityBody;
+import com.papenko.filestorage.dto.SlimFilePage;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.exception.FileOperation400Exception;
 import com.papenko.filestorage.exception.FileOperation404Exception;
@@ -36,32 +39,32 @@ public class FileController {
     }
 
     @DeleteMapping("{ID}")
-    public ResponseEntity<SuccessStatus> delete(@PathVariable(name = "ID") String id) {
+    public ResponseEntity<ErrorMessage> delete(@PathVariable(name = "ID") String id) {
         fileService.delete(id);
-        return ResponseEntity.ok(new SuccessStatus(true));
+        return ResponseEntity.ok(new ErrorMessage());
     }
 
     @PostMapping("{ID}/tags")
-    public ResponseEntity<SuccessStatus> postTags(@PathVariable(name = "ID") String id,
-                                                  @RequestBody List<String> tags) {
+    public ResponseEntity<ErrorMessage> postTags(@PathVariable(name = "ID") String id,
+                                                 @RequestBody List<String> tags) {
         fileService.updateTags(id, tags);
-        return ResponseEntity.ok(new SuccessStatus(true));
+        return ResponseEntity.ok(new ErrorMessage());
     }
 
     @DeleteMapping("{ID}/tags")
-    public ResponseEntity<SuccessStatus> deleteTags(@PathVariable(name = "ID") String id,
-                                                    @RequestBody List<String> tags) {
+    public ResponseEntity<ErrorMessage> deleteTags(@PathVariable(name = "ID") String id,
+                                                   @RequestBody List<String> tags) {
         fileService.deleteTags(id, tags);
-        return ResponseEntity.ok(new SuccessStatus(true));
+        return ResponseEntity.ok(new ErrorMessage());
     }
 
     @ExceptionHandler(FileOperation400Exception.class)
     public ResponseEntity<ErrorMessage> handleException(FileOperation400Exception e) {
-        return ResponseEntity.badRequest().body(new ErrorMessage(false, e.getMessage()));
+        return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
     }
 
     @ExceptionHandler(FileOperation404Exception.class)
     public ResponseEntity<ErrorMessage> handleException(FileOperation404Exception e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(false, e.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(e.getMessage()));
     }
 }

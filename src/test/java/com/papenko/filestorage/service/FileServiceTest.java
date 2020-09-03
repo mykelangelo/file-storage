@@ -4,6 +4,7 @@ import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.exception.FileOperation400Exception;
 import com.papenko.filestorage.exception.FileOperation404Exception;
+import com.papenko.filestorage.repository.FileCustomRepositoryImpl;
 import com.papenko.filestorage.repository.FileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,8 @@ class FileServiceTest {
     private FileService fileService;
     @Mock
     private FileRepository fileRepository;
+    @Mock
+    private FileCustomRepositoryImpl fileCustomRepository;
 
     @Test
     void isFileValid_shouldReturnTrueAndNull_whenValidFileIsPassed() {

@@ -226,6 +226,26 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
+    void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyTwoMatchingDocumentsExistInDbButWeRequestOne()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        indexQuery = new IndexQuery();
+        indexQuery.setId("id1");
+        indexQuery.setObject(new File("id1", "name1", 1L, List.of("tag1", "tag2", "tag3")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(get("/file?tags=tag1,tag2,tag3&size=1"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(
+                        "{\"total\":2,\"page\":[{\"id\":\"id0\",\"name\":\"name\",\"size\":0,\"tags\":" +
+                                "[\"tag1\",\"tag2\",\"tag3\"]}]}"));
+    }
+
+    @Test
     void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneMatchingByNameDocumentExistsInDb()
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
