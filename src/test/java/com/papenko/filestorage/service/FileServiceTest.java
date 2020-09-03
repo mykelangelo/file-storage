@@ -1,10 +1,8 @@
 package com.papenko.filestorage.service;
 
-import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.exception.FileOperation400Exception;
 import com.papenko.filestorage.exception.FileOperation404Exception;
-import com.papenko.filestorage.repository.FileCustomRepositoryImpl;
 import com.papenko.filestorage.repository.FileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,40 +22,6 @@ class FileServiceTest {
     private FileService fileService;
     @Mock
     private FileRepository fileRepository;
-    @Mock
-    private FileCustomRepositoryImpl fileCustomRepository;
-
-    @Test
-    void isFileValid_shouldReturnTrueAndNull_whenValidFileIsPassed() {
-        FileValidityCheckReport report = fileService.isFileValid(new File("id0", "name", 0L, null));
-
-        assertTrue(report.isValid());
-        assertNull(report.getErrorMessage());
-    }
-
-    @Test
-    void isFileValid_shouldReturnFalseAndErrorMessage_whenNameIsMissing() {
-        FileValidityCheckReport report = fileService.isFileValid(new File("id0", null, 0L, null));
-
-        assertFalse(report.isValid());
-        assertEquals("file name is missing", report.getErrorMessage());
-    }
-
-    @Test
-    void isFileValid_shouldReturnFalseAndErrorMessage_whenSizeIsMissing() {
-        FileValidityCheckReport report = fileService.isFileValid(new File("id0", "name", null, null));
-
-        assertFalse(report.isValid());
-        assertEquals("file size is missing", report.getErrorMessage());
-    }
-
-    @Test
-    void isFileValid_shouldReturnFalseAndErrorMessage_whenSizeIsNegative() {
-        FileValidityCheckReport report = fileService.isFileValid(new File("id0", "name", -1L, null));
-
-        assertFalse(report.isValid());
-        assertEquals("file size is negative", report.getErrorMessage());
-    }
 
     @Test
     void uploadFile_shouldCallSaveMethodOfRepository() {

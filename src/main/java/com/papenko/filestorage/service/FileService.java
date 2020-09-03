@@ -1,6 +1,5 @@
 package com.papenko.filestorage.service;
 
-import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.dto.SlimFilePage;
 import com.papenko.filestorage.entity.File;
 import com.papenko.filestorage.exception.FileOperation400Exception;
@@ -26,24 +25,7 @@ public class FileService {
     }
 
     public File uploadFile(File file) {
-        final FileValidityCheckReport report = isFileValid(file);
-        if (!report.isValid()) {
-            throw new FileOperation400Exception(report.getErrorMessage());
-        }
         return fileRepository.save(file);
-    }
-
-    FileValidityCheckReport isFileValid(File file) {
-        if (file.getName() == null || file.getName().stripLeading().isEmpty()) {
-            return new FileValidityCheckReport(false, "file name is missing");
-        }
-        if (file.getSize() == null) {
-            return new FileValidityCheckReport(false, "file size is missing");
-        }
-        if (file.getSize() < 0) {
-            return new FileValidityCheckReport(false, "file size is negative");
-        }
-        return new FileValidityCheckReport(true, null);
     }
 
     public void delete(String id) {

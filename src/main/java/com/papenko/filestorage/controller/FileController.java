@@ -11,8 +11,10 @@ import com.papenko.filestorage.service.FileService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -33,7 +35,7 @@ public class FileController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseEntityBody> upload(@RequestBody File file) {
+    public ResponseEntity<ResponseEntityBody> upload(@Valid @RequestBody File file) {
         final File uploadedFile = fileService.uploadFile(file);
         return ResponseEntity.ok(new Id(uploadedFile.getId()));
     }
@@ -66,5 +68,11 @@ public class FileController {
     @ExceptionHandler(FileOperation404Exception.class)
     public ResponseEntity<ErrorMessage> handleException(FileOperation404Exception e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(e.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorMessage> handleException(MethodArgumentNotValidException e) {
+        final String error = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(new ErrorMessage(error));
     }
 }

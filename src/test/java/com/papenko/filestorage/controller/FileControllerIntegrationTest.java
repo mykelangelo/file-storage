@@ -61,12 +61,34 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
-    void post_shouldNotCreateNewEntity_whenFileIsInvalid() throws Exception {
+    void post_shouldNotCreateNewEntity_whenFileNameIsMissing() throws Exception {
         mockMvc.perform(post("/file")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"\", \"size\": 0}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json("{\"success\":false,\"error\":\"file name is missing\"}"));
+
+        assertThat(esTemplate.search(Query.findAll(), File.class)).isEmpty();
+    }
+
+    @Test
+    void post_shouldNotCreateNewEntity_whenFileSizeIsMissing() throws Exception {
+        mockMvc.perform(post("/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\": \"name0\", \"size\": null}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"success\":false,\"error\":\"file size is missing\"}"));
+
+        assertThat(esTemplate.search(Query.findAll(), File.class)).isEmpty();
+    }
+
+    @Test
+    void post_shouldNotCreateNewEntity_whenFileSizeIsNegative() throws Exception {
+        mockMvc.perform(post("/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\": \"name0\", \"size\": -1}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"success\":false,\"error\":\"file size is negative\"}"));
 
         assertThat(esTemplate.search(Query.findAll(), File.class)).isEmpty();
     }
