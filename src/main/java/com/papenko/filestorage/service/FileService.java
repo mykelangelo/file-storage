@@ -3,7 +3,8 @@ package com.papenko.filestorage.service;
 import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.dto.SlimFilePage;
 import com.papenko.filestorage.entity.File;
-import com.papenko.filestorage.exception.*;
+import com.papenko.filestorage.exception.FileOperation400Exception;
+import com.papenko.filestorage.exception.FileOperation404Exception;
 import com.papenko.filestorage.repository.FileCustomRepository;
 import com.papenko.filestorage.repository.FileRepository;
 import org.apache.logging.log4j.util.Strings;
@@ -28,7 +29,7 @@ public class FileService {
     public File uploadFile(File file) {
         final FileValidityCheckReport report = isFileValid(file);
         if (!report.isValid()) {
-            throw new FileUpload400Exception(report.getErrorMessage());
+            throw new FileOperation400Exception(report.getErrorMessage());
         }
         return fileRepository.save(file);
     }
@@ -48,7 +49,7 @@ public class FileService {
 
     public void delete(String id) {
         if (!fileRepository.existsById(id)) {
-            throw new FileDelete404Exception();
+            throw new FileOperation404Exception();
         }
         fileRepository.deleteById(id);
     }
@@ -56,7 +57,7 @@ public class FileService {
     public void updateTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
-            throw new FileUpdateTags404Exception();
+            throw new FileOperation404Exception();
         }
         fileRepository.save(fileOptional.get().withTags(tags));
     }
@@ -64,11 +65,11 @@ public class FileService {
     public void deleteTags(String id, List<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
-            throw new FileDeleteTags404Exception();
+            throw new FileOperation404Exception();
         }
         final File file = fileOptional.get();
         if (!file.getTags().containsAll(tags)) {
-            throw new FileDeleteTags400Exception();
+            throw new FileOperation400Exception("tag not found on file");
         }
         final File withTags = file.withTags(file.getTags().stream()
                 .filter(tag -> !tags.contains(tag))

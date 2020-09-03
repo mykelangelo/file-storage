@@ -2,10 +2,8 @@ package com.papenko.filestorage.service;
 
 import com.papenko.filestorage.dto.FileValidityCheckReport;
 import com.papenko.filestorage.entity.File;
-import com.papenko.filestorage.exception.FileDelete404Exception;
-import com.papenko.filestorage.exception.FileDeleteTags400Exception;
-import com.papenko.filestorage.exception.FileDeleteTags404Exception;
-import com.papenko.filestorage.exception.FileUpdateTags404Exception;
+import com.papenko.filestorage.exception.FileOperation400Exception;
+import com.papenko.filestorage.exception.FileOperation404Exception;
 import com.papenko.filestorage.repository.FileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +70,7 @@ class FileServiceTest {
 
     @Test
     void delete_shouldThrowFileDelete404Exception_whenNoFileIsFoundBySuchId() {
-        assertThatExceptionOfType(FileDelete404Exception.class)
+        assertThatExceptionOfType(FileOperation404Exception.class)
                 .isThrownBy(() -> fileService.delete("id0"))
                 .withMessage("file not found");
 
@@ -105,7 +103,7 @@ class FileServiceTest {
     void updateTags_shouldThrowFileUpdateTags404Exception_whenNoFileExistsBySuchId() {
         when(fileRepository.findById("id")).thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(FileUpdateTags404Exception.class)
+        assertThatExceptionOfType(FileOperation404Exception.class)
                 .isThrownBy(() -> fileService.updateTags("id", List.of("tag1", "tag2", "tag3")))
                 .withMessage("file not found");
 
@@ -116,7 +114,7 @@ class FileServiceTest {
     void deleteTags_shouldThrowFileDeleteTags404Exception_whenNoFileIsFoundById() {
         when(fileRepository.findById("id")).thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(FileDeleteTags404Exception.class)
+        assertThatExceptionOfType(FileOperation404Exception.class)
                 .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
                 .withMessage("file not found");
 
@@ -127,7 +125,7 @@ class FileServiceTest {
     void deleteTags_shouldThrowFileDeleteTags400Exception_whenNoTagsArePresentInFoundFile() {
         when(fileRepository.findById("id")).thenReturn(Optional.of(new File("id", "name", 0L, null)));
 
-        assertThatExceptionOfType(FileDeleteTags400Exception.class)
+        assertThatExceptionOfType(FileOperation400Exception.class)
                 .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
                 .withMessage("tag not found on file");
     }
@@ -136,7 +134,7 @@ class FileServiceTest {
     void deleteTags_shouldReturnFalse_whenNotAllTagsArePresentInFoundFile() {
         when(fileRepository.findById("id")).thenReturn(Optional.of(new File("id", "name", 0L, List.of("tag1"))));
 
-        assertThatExceptionOfType(FileDeleteTags400Exception.class)
+        assertThatExceptionOfType(FileOperation400Exception.class)
                 .isThrownBy(() -> fileService.deleteTags("id", List.of("tag1", "tag2")))
                 .withMessage("tag not found on file");
     }
