@@ -56,7 +56,25 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, List.of("text")), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, List.of("text", "document")), "id");
+        assertThat(nextFile.getId()).isNotBlank();
+    }
+
+    @Test
+    void post_shouldAddArchiveTag_whenFileIsOfRarExtension() throws Exception {
+        final MvcResult mvcResult = mockMvc.perform(post("/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\": \"file1.rar\", \"size\": 0, \"tags\": [\"text\"]}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
+        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
+        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        assertTrue(iterator.hasNext());
+        final File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.rar", 0L, List.of("text", "archive")), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -280,7 +298,7 @@ public class FileControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0," +
-                                "\"tags\":[\"document\"]}]}"));
+                                "\"tags\":[]}]}"));
     }
 
     @Test
@@ -296,7 +314,7 @@ public class FileControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":1,\"page\":[{\"id\":\"id0\",\"name\":\"yolo name0.txt\",\"size\":0," +
-                                "\"tags\":[\"document\"]}]}"));
+                                "\"tags\":[]}]}"));
     }
 
     @Test
@@ -332,12 +350,12 @@ public class FileControllerIntegrationTest {
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
-        mockMvc.perform(get("/file?q=name&tags=document,yo"))
+        mockMvc.perform(get("/file?q=name&tags=yo"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":2,\"page\":[{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0," +
-                                "\"tags\":[\"yo\",\"document\"]},{\"id\":\"id1\",\"name\":\"yolo.name1.doc\"," +
-                                "\"size\":1,\"tags\":[\"yo\",\"document\"]}]}"));
+                                "\"tags\":[\"yo\"]},{\"id\":\"id1\",\"name\":\"yolo.name1.doc\"," +
+                                "\"size\":1,\"tags\":[\"yo\"]}]}"));
     }
 
     @Test
@@ -361,11 +379,11 @@ public class FileControllerIntegrationTest {
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
-        mockMvc.perform(get("/file?q=name&tags=document,yo"))
+        mockMvc.perform(get("/file?q=name&tags=yo&size=2"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
-                        "{\"total\":2,\"page\":[{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0," +
-                                "\"tags\":[\"yo\",\"document\"]},{\"id\":\"id1\",\"name\":\"yolo.name1.doc\"," +
-                                "\"size\":1,\"tags\":[\"yo\",\"document\"]}]}"));
+                        "{\"total\":3,\"page\":[" +
+                                "{\"id\":\"id-1\",\"name\":\"nam1.vid\",\"size\":1,\"tags\":[\"yo\"]}," +
+                                "{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0,\"tags\":[\"yo\"]}]}"));
     }
 }

@@ -6,11 +6,8 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Document(indexName = "file")
 public class File {
@@ -30,41 +27,7 @@ public class File {
         this.id = id;
         this.name = name;
         this.size = size;
-        Optional<String> firstTag = Optional.empty();
-        if (name != null) {
-            firstTag = defineFirstTagIfApplicable();
-        }
-        List<String> newTags;
-        if (firstTag.isEmpty()) {
-            newTags = tags == null ? List.of() : tags;
-        } else {
-            newTags = tags == null ?
-                    new ArrayList<>(1) :
-                    new ArrayList<>(tags);
-            newTags.add(firstTag.get());
-        }
-        this.tags = tags == null ?
-                newTags :
-                List.copyOf(newTags.stream()
-                        .map(String::toLowerCase)
-                        .distinct()
-                        .collect(Collectors.toList()));
-    }
-
-    private Optional<String> defineFirstTagIfApplicable() {
-        if (DocumentFormat.isDocumentFormat(name)) {
-            return Optional.of("document");
-        }
-        if (VideoFormat.isVideoFormat(name)) {
-            return Optional.of("video");
-        }
-        if (ImageFormat.isImageFormat(name)) {
-            return Optional.of("image");
-        }
-        if (AudioFormat.isAudioFormat(name)) {
-            return Optional.of("audio");
-        }
-        return Optional.empty();
+        this.tags = tags == null ? List.of() : List.copyOf(tags);
     }
 
     public String getId() {
