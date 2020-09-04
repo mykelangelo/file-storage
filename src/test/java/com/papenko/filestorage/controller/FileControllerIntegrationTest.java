@@ -79,6 +79,36 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
+    void post_shouldAddArchiveTagAndBeAbleToDeleteIt_whenFileIsOfZipExtension() throws Exception {
+        final MvcResult mvcResult = mockMvc.perform(post("/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\": \"file1.zip\", \"size\": 0, \"tags\": [\"text\"]}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
+        Iterator<SearchHit<File>> iterator = esTemplate.search(Query.findAll(), File.class).iterator();
+        assertTrue(iterator.hasNext());
+        File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, List.of("text", "archive")), "id");
+        assertThat(nextFile.getId()).isNotBlank();
+
+        mockMvc.perform(delete("/file/{ID}/tags", nextFile.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"text\", \"archive\"]"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"success\":true}"));
+
+        iterator = esTemplate.search(Query.findAll(), File.class).iterator();
+        assertTrue(iterator.hasNext());
+        nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, List.of()), "id");
+        assertThat(nextFile.getId()).isNotBlank();
+    }
+
+    @Test
     void post_shouldNotCreateNewEntity_whenFileNameIsMissing() throws Exception {
         mockMvc.perform(post("/file")
                 .contentType(MediaType.APPLICATION_JSON)
