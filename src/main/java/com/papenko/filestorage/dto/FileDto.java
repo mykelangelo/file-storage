@@ -8,7 +8,6 @@ import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 public class FileDto {
-    private final String id;
     @NotBlank(message = "file name is missing")
     private final String name;
     /**
@@ -20,15 +19,11 @@ public class FileDto {
     private final Set<String> tags;
 
     public FileDto(String id, String name, Long size, Set<String> tags) {
-        this.id = id;
         this.name = name;
         this.size = size;
         this.tags = tags == null ? Set.of() : Set.copyOf(tags);
     }
 
-    public String getId() {
-        return id;
-    }
 
     public String getName() {
         return name;
@@ -43,6 +38,6 @@ public class FileDto {
     }
 
     public File toFile() {
-        return new File(id, name, size, tags);
+        return new File(null, name, size, tags);
     }
 }

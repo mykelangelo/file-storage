@@ -51,13 +51,35 @@ public class FileControllerIntegrationTest {
                 .andReturn();
 
         assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
-        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
-        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        final Iterator<SearchHit<File>> iterator = esTemplate.search(Query.findAll(), File.class).iterator();
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
         assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, Set.of("text", "document")), "id");
         assertThat(nextFile.getId()).isNotBlank();
+    }
+
+    @Test
+    void post_shouldNotUpdateEntity_whenFileExistsInDbByIdProvided() throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, null));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        final MvcResult mvcResult = mockMvc.perform(post("/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ID\":\"id0\",\"name\": \"file1.ddd\", \"size\": 0, \"tags\": [\"text\"]}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
+        final Iterator<SearchHit<File>> iterator = esTemplate.search(Query.findAll(), File.class).iterator();
+        assertTrue(iterator.hasNext());
+        iterator.next();
+        assertTrue(iterator.hasNext());
+        iterator.next();
+        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -69,8 +91,7 @@ public class FileControllerIntegrationTest {
                 .andReturn();
 
         assertTrue(ID_JSON.matcher(mvcResult.getResponse().getContentAsString()).matches());
-        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
-        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        final Iterator<SearchHit<File>> iterator = esTemplate.search(Query.findAll(), File.class).iterator();
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
