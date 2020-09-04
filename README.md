@@ -10,6 +10,9 @@
 
 # Simple File Storage
 
+#Important
+Note: if you want integration tests not to pollute your local DB, set environment variable SPRING_PROFILES_ACTIVE=test, run tests and unset afterwards
+(Some IDEs like Intellij IDEA support setting env vars per run configuration, thus no need to set and unset it yourself)
 
 # How to only build (with db shutdown)
 0) open root dir ("file-storage")

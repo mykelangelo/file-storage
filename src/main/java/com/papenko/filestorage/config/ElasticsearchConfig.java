@@ -55,6 +55,10 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
 
             return new RestHighLevelClient(restClientBuilder);
         }
+        if ("test".equals(profile)) {
+            LOGGER.info("Using test environment");
+            return new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9201, "http")));
+        }
         LOGGER.info("Using default local environment");
         return new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")));
     }

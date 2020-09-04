@@ -107,6 +107,28 @@
                                 </wait>
                             </run>
                         </image>
+                        <image>
+                            <name>docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch.version}</name>
+                            <run>
+                                <ports>
+                                    <port>9201:9200</port>
+                                    <port>9301:9300</port>
+                                </ports>
+                                <env>
+                                    <!-- specify single-node discovery to bypass the bootstrap checks -->
+                                    <discovery.type>single-node</discovery.type>
+                                </env>
+                                <log>
+                                    <prefix>Elasticsearch:</prefix>
+                                    <enabled>true</enabled>
+                                    <color>yellow</color>
+                                </log>
+                                <wait>
+                                    <time>60000</time><!-- 60 seconds max -->
+                                    <log>.*"message": "started".*</log>
+                                </wait>
+                            </run>
+                        </image>
                     </images>
                 </configuration>
             </plugin>
