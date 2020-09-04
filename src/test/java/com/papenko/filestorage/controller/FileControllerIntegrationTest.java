@@ -405,7 +405,7 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
-    void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneMatchingByNameWithWhitespacesDocumentExistsInDb()
+    void getByTagsAndName_shouldReturnOkAndPageWithSingleFile_whenOnlyOneMatchingByNameWithWhitespacesDocumentExists()
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
