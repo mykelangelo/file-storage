@@ -11,8 +11,8 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 
 @TestConfiguration
 @EnableElasticsearchRepositories(basePackages = "com.papenko.filestorage.repository")
-public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchConfig.class);
+public class ElasticsearchTestConfig extends AbstractElasticsearchConfiguration {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchTestConfig.class);
 
     @Override
     public RestHighLevelClient elasticsearchClient() {
