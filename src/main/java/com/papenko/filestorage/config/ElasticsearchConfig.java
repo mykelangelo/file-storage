@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.config.AbstractElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
+import static com.papenko.filestorage.constant.EnvironmentVariable.*;
+
 @Configuration
 @EnableElasticsearchRepositories(basePackages = "com.papenko.filestorage.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
@@ -27,12 +29,12 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     private final String elasticProtocol;
     private final String profile;
 
-    public ElasticsearchConfig(@Value("#{systemEnvironment['ELASTIC_USERNAME']}") String elasticUsername,
-                               @Value("#{systemEnvironment['ELASTIC_PASSWORD']}") String elasticPassword,
-                               @Value("#{systemEnvironment['ELASTIC_HOST']}") String elasticHost,
-                               @Value("#{systemEnvironment['ELASTIC_PORT']}") Integer elasticPort,
-                               @Value("#{systemEnvironment['ELASTIC_PROTOCOL']}") String elasticProtocol,
-                               @Value("#{systemEnvironment['SPRING_PROFILES_ACTIVE']}") String profile) {
+    public ElasticsearchConfig(@Value("#{systemEnvironment['" + ELASTIC_USERNAME + "']}") String elasticUsername,
+                               @Value("#{systemEnvironment['" + ELASTIC_PASSWORD + "']}") String elasticPassword,
+                               @Value("#{systemEnvironment['" + ELASTIC_HOST + "']}") String elasticHost,
+                               @Value("#{systemEnvironment['" + ELASTIC_PORT + "']}") Integer elasticPort,
+                               @Value("#{systemEnvironment['" + ELASTIC_PROTOCOL + "']}") String elasticProtocol,
+                               @Value("#{systemEnvironment['" + SPRING_PROFILES_ACTIVE + "']}") String profile) {
         this.elasticUsername = elasticUsername;
         this.elasticPassword = elasticPassword;
         this.elasticHost = elasticHost;

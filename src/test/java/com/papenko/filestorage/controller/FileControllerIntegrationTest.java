@@ -1,6 +1,8 @@
 package com.papenko.filestorage.controller;
 
 import com.papenko.filestorage.entity.File;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +17,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.lang.reflect.Field;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.papenko.filestorage.constant.EnvironmentVariable.SPRING_PROFILES_ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +40,24 @@ public class FileControllerIntegrationTest {
 
     @Autowired
     private ElasticsearchRestTemplate esTemplate;
+
+    @BeforeAll
+    static void beforeAll() throws ReflectiveOperationException {
+        updateProfile("test");
+    }
+
+    @AfterAll
+    static void afterAll() throws ReflectiveOperationException {
+        updateProfile("local");
+    }
+
+
+    private static void updateProfile(String val) throws ReflectiveOperationException {
+        Map<String, String> env = System.getenv();
+        Field field = env.getClass().getDeclaredField("m");
+        field.setAccessible(true);
+        ((Map<String, String>) field.get(env)).put(SPRING_PROFILES_ACTIVE, val);
+    }
 
     @BeforeEach
     void setUp() {
@@ -55,7 +78,8 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, Set.of("text", "document")), "id");
+        final File other = new File(null, "file1.txt", 0L, Set.of("text", "document"));
+        assertThat(nextFile).isEqualToIgnoringGivenFields(other, "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -95,7 +119,8 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.rar", 0L, Set.of("text", "archive")), "id");
+        final File other = new File(null, "file1.rar", 0L, Set.of("text", "archive"));
+        assertThat(nextFile).isEqualToIgnoringGivenFields(other, "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -112,7 +137,8 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, Set.of("text", "archive")), "id");
+        final File other = new File(null, "file1.zip", 0L, Set.of("text", "archive"));
+        assertThat(nextFile).isEqualToIgnoringGivenFields(other, "id");
         assertThat(nextFile.getId()).isNotBlank();
 
         mockMvc.perform(delete("/file/{ID}/tags", nextFile.getId())
