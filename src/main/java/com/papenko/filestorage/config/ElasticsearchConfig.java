@@ -20,23 +20,26 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchConfig.class);
 
-    @Value("#{systemEnvironment['ELASTIC_USERNAME']}")
-    private String elasticUsername;
+    private final String elasticUsername;
+    private final String elasticPassword;
+    private final String elasticHost;
+    private final Integer elasticPort;
+    private final String elasticProtocol;
+    private final String profile;
 
-    @Value("#{systemEnvironment['ELASTIC_PASSWORD']}")
-    private String elasticPassword;
-
-    @Value("#{systemEnvironment['ELASTIC_HOST']}")
-    private String elasticHost;
-
-    @Value("#{systemEnvironment['ELASTIC_PORT']}")
-    private Integer elasticPort;
-
-    @Value("#{systemEnvironment['ELASTIC_PROTOCOL']}")
-    private String elasticProtocol;
-
-    @Value("#{systemEnvironment['SPRING_PROFILES_ACTIVE']}")
-    private String profile;
+    public ElasticsearchConfig(@Value("#{systemEnvironment['ELASTIC_USERNAME']}") String elasticUsername,
+                               @Value("#{systemEnvironment['ELASTIC_PASSWORD']}") String elasticPassword,
+                               @Value("#{systemEnvironment['ELASTIC_HOST']}") String elasticHost,
+                               @Value("#{systemEnvironment['ELASTIC_PORT']}") Integer elasticPort,
+                               @Value("#{systemEnvironment['ELASTIC_PROTOCOL']}") String elasticProtocol,
+                               @Value("#{systemEnvironment['SPRING_PROFILES_ACTIVE']}") String profile) {
+        this.elasticUsername = elasticUsername;
+        this.elasticPassword = elasticPassword;
+        this.elasticHost = elasticHost;
+        this.elasticPort = elasticPort;
+        this.elasticProtocol = elasticProtocol;
+        this.profile = profile;
+    }
 
     @Override
     public RestHighLevelClient elasticsearchClient() {

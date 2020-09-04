@@ -1,12 +1,13 @@
 package com.papenko.filestorage.entity;
 
+import com.papenko.filestorage.constant.Index;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
 import java.util.Objects;
 import java.util.Set;
 
-@Document(indexName = "file")
+@Document(indexName = Index.FILE)
 public class File {
     @Id
     private final String id;
