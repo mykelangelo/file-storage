@@ -11,9 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,26 +40,25 @@ public class FileService {
         return fileRepository.save(file.withTags(rectifyTags(file)));
     }
 
-    List<String> rectifyTags(File file) {
+    Set<String> rectifyTags(File file) {
         Optional<String> firstTag = Optional.empty();
         if (file.getName() != null) {
             firstTag = defineFirstTagIfApplicable(file.getName());
         }
-        List<String> newTags;
+        Set<String> newTags;
         if (firstTag.isEmpty()) {
-            newTags = file.getTags() == null ? List.of() : file.getTags();
+            newTags = file.getTags() == null ? Set.of() : file.getTags();
         } else {
             newTags = file.getTags() == null ?
-                    new ArrayList<>(1) :
-                    new ArrayList<>(file.getTags());
+                    new HashSet<>(1) :
+                    new HashSet<>(file.getTags());
             newTags.add(firstTag.get());
         }
         return file.getTags() == null ?
                 newTags :
-                List.copyOf(newTags.stream()
+                Set.copyOf(newTags.stream()
                         .map(String::toLowerCase)
-                        .distinct()
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toSet()));
     }
 
     private Optional<String> defineFirstTagIfApplicable(String name) {
@@ -84,26 +81,31 @@ public class FileService {
         fileRepository.deleteById(id);
     }
 
-    public void updateTags(String id, List<String> tags) {
+    public void addTags(String id, Set<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
             throw new FileOperation404Exception();
         }
-        fileRepository.save(fileOptional.get().withTags(tags));
+        Set<String> newTags = new HashSet<>(fileOptional.get().getTags());
+        newTags.addAll(tags);
+        fileRepository.save(fileOptional.get().withTags(newTags));
     }
 
-    public void deleteTags(String id, List<String> tags) {
+    public void deleteTags(String id, Collection<String> tags) {
         final Optional<File> fileOptional = fileRepository.findById(id);
         if (fileOptional.isEmpty()) {
             throw new FileOperation404Exception();
         }
         final File file = fileOptional.get();
-        if (!file.getTags().containsAll(tags)) {
+        final Set<String> lowerCaseTags = tags.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+        if (!file.getTags().containsAll(lowerCaseTags)) {
             throw new FileOperation400Exception("tag not found on file");
         }
         final File withTags = file.withTags(file.getTags().stream()
-                .filter(tag -> !tags.contains(tag))
-                .collect(Collectors.toList()));
+                .filter(tag -> !lowerCaseTags.contains(tag))
+                .collect(Collectors.toSet()));
         fileRepository.save(withTags);
     }
 

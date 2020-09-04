@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("file")
@@ -45,14 +46,14 @@ public class FileController {
 
     @PostMapping("{ID}/tags")
     public ResponseEntity<ErrorMessage> postTags(@PathVariable(name = "ID") String id,
-                                                 @RequestBody List<String> tags) {
-        fileService.updateTags(id, tags);
+                                                 @RequestBody Set<String> tags) {
+        fileService.addTags(id, tags);
         return ResponseEntity.ok(new ErrorMessage());
     }
 
     @DeleteMapping("{ID}/tags")
     public ResponseEntity<ErrorMessage> deleteTags(@PathVariable(name = "ID") String id,
-                                                   @RequestBody List<String> tags) {
+                                                   @RequestBody Set<String> tags) {
         fileService.deleteTags(id, tags);
         return ResponseEntity.ok(new ErrorMessage());
     }

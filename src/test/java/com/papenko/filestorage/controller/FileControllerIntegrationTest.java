@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +56,7 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, List.of("text", "document")), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.txt", 0L, Set.of("text", "document")), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -74,7 +74,7 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.rar", 0L, List.of("text", "archive")), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.rar", 0L, Set.of("text", "archive")), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -91,7 +91,7 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, List.of("text", "archive")), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, Set.of("text", "archive")), "id");
         assertThat(nextFile.getId()).isNotBlank();
 
         mockMvc.perform(delete("/file/{ID}/tags", nextFile.getId())
@@ -104,7 +104,7 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, List.of()), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "file1.zip", 0L, Set.of()), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -173,7 +173,7 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
-    void postTags_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchId() throws Exception {
+    void postTags_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchIdAndItHadNoTags() throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
         indexQuery.setObject(new File("id0", "name", 0L, null));
@@ -191,7 +191,56 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        var tags = List.of("tag1", "tag2", "tag3");
+        var tags = Set.of("tag1", "tag2", "tag3");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, tags), "id");
+        assertThat(nextFile.getId()).isNotBlank();
+    }
+
+    @Test
+    void postTags_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchIdAndItHadSomeUniqueTags() throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("yo", "yolo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(post("/file/{ID}/tags", "id0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"tag1\", \"tag2\", \"tag3\"]"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"success\":true}"));
+
+        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
+        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        assertTrue(iterator.hasNext());
+        final File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        var tags = Set.of("yo", "yolo", "tag1", "tag2", "tag3");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, tags), "id");
+        assertThat(nextFile.getId()).isNotBlank();
+    }
+
+    @Test
+    void postTags_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchIdAndItHadSomeRepeatingTags()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("yo", "yolo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(post("/file/{ID}/tags", "id0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"yo\", \"hello\", \"hi\"]"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"success\":true}"));
+
+        final SearchHits<File> searchHits = esTemplate.search(Query.findAll(), File.class);
+        final Iterator<SearchHit<File>> iterator = searchHits.iterator();
+        assertTrue(iterator.hasNext());
+        final File nextFile = iterator.next().getContent();
+        assertFalse(iterator.hasNext());
+        var tags = Set.of("yo", "yolo", "hello", "hi");
         assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, tags), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
@@ -224,7 +273,7 @@ public class FileControllerIntegrationTest {
     void deleteTags_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchId() throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -239,7 +288,7 @@ public class FileControllerIntegrationTest {
         assertTrue(iterator.hasNext());
         final File nextFile = iterator.next().getContent();
         assertFalse(iterator.hasNext());
-        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, List.of()), "id");
+        assertThat(nextFile).isEqualToIgnoringGivenFields(new File(null, "name", 0L, Set.of()), "id");
         assertThat(nextFile.getId()).isNotBlank();
     }
 
@@ -248,7 +297,7 @@ public class FileControllerIntegrationTest {
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -264,7 +313,7 @@ public class FileControllerIntegrationTest {
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag 1", "tag 2", "tag 3")));
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("tag 1", "tag 2", "tag 3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -280,11 +329,11 @@ public class FileControllerIntegrationTest {
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id1");
-        indexQuery.setObject(new File("id1", "name1", 1L, List.of("tag4", "tag2", "tag3")));
+        indexQuery.setObject(new File("id1", "name1", 1L, Set.of("tag4", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -300,11 +349,11 @@ public class FileControllerIntegrationTest {
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "name", 0L, List.of("tag1", "tag2", "tag3")));
+        indexQuery.setObject(new File("id0", "name", 0L, Set.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id1");
-        indexQuery.setObject(new File("id1", "name1", 1L, List.of("tag1", "tag2", "tag3")));
+        indexQuery.setObject(new File("id1", "name1", 1L, Set.of("tag1", "tag2", "tag3")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -372,11 +421,11 @@ public class FileControllerIntegrationTest {
             throws Exception {
         IndexQuery indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "yolo.name0.txt", 0L, List.of("yo")));
+        indexQuery.setObject(new File("id0", "yolo.name0.txt", 0L, Set.of("yo")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id1");
-        indexQuery.setObject(new File("id1", "yolo.name1.doc", 1L, List.of("yo")));
+        indexQuery.setObject(new File("id1", "yolo.name1.doc", 1L, Set.of("yo")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
@@ -397,15 +446,15 @@ public class FileControllerIntegrationTest {
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id-1");
-        indexQuery.setObject(new File("id-1", "nam1.vid", 1L, List.of("yo")));
+        indexQuery.setObject(new File("id-1", "nam1.vid", 1L, Set.of("yo")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id0");
-        indexQuery.setObject(new File("id0", "yolo.name0.txt", 0L, List.of("yo")));
+        indexQuery.setObject(new File("id0", "yolo.name0.txt", 0L, Set.of("yo")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         indexQuery = new IndexQuery();
         indexQuery.setId("id1");
-        indexQuery.setObject(new File("id1", "yolo.name1.doc", 1L, List.of("yo")));
+        indexQuery.setObject(new File("id1", "yolo.name1.doc", 1L, Set.of("yo")));
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 

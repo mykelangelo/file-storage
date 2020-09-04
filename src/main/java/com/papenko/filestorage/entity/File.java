@@ -3,8 +3,8 @@ package com.papenko.filestorage.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Document(indexName = "file")
 public class File {
@@ -15,13 +15,13 @@ public class File {
      * file size in bytes
      */
     private final Long size;
-    private final List<String> tags;
+    private final Set<String> tags;
 
-    public File(String id, String name, Long size, List<String> tags) {
+    public File(String id, String name, Long size, Set<String> tags) {
         this.id = id;
         this.name = name;
         this.size = size;
-        this.tags = tags == null ? List.of() : List.copyOf(tags);
+        this.tags = tags == null ? Set.of() : Set.copyOf(tags);
     }
 
     public String getId() {
@@ -36,11 +36,11 @@ public class File {
         return size;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public File withTags(List<String> newTags) {
+    public File withTags(Set<String> newTags) {
         return new File(id, name, size, newTags);
     }
 
@@ -62,5 +62,15 @@ public class File {
     @Override
     public int hashCode() {
         return Objects.hash(id, name, size, tags);
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", size=" + size +
+                ", tags=" + tags +
+                '}';
     }
 }

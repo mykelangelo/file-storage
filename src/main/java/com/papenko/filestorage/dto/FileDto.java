@@ -5,7 +5,7 @@ import com.papenko.filestorage.entity.File;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import java.util.Set;
 
 public class FileDto {
     private final String id;
@@ -17,13 +17,13 @@ public class FileDto {
     @NotNull(message = "file size is missing")
     @Min(value = 0, message = "file size is negative")
     private final Long size;
-    private final List<String> tags;
+    private final Set<String> tags;
 
-    public FileDto(String id, String name, Long size, List<String> tags) {
+    public FileDto(String id, String name, Long size, Set<String> tags) {
         this.id = id;
         this.name = name;
         this.size = size;
-        this.tags = tags == null ? List.of() : List.copyOf(tags);
+        this.tags = tags == null ? Set.of() : Set.copyOf(tags);
     }
 
     public String getId() {
@@ -38,7 +38,7 @@ public class FileDto {
         return size;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
