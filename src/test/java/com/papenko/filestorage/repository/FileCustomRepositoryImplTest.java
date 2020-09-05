@@ -46,8 +46,9 @@ class FileCustomRepositoryImplTest {
         assertEquals(boolQuery()
                         .must(queryStringQuery("tag1").field("tags"))
                         .must(queryStringQuery("tag2").field("tags"))
-                        .should(regexpQuery("name", ".*name.*"))
-                        .should(queryStringQuery("name").field("name")),
+                        .must(boolQuery()
+                                .should(regexpQuery("name", ".*name.*"))
+                                .should(queryStringQuery("name").field("name"))),
                 query.getFilter());
     }
 
@@ -56,7 +57,9 @@ class FileCustomRepositoryImplTest {
         final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, "name");
 
         assertEquals(boolQuery()
-                .should(regexpQuery("name", ".*name.*"))
-                .should(queryStringQuery("name").field("name")), query.getFilter());
+                        .must(boolQuery()
+                                .should(regexpQuery("name", ".*name.*"))
+                                .should(queryStringQuery("name").field("name"))),
+                query.getFilter());
     }
 }

@@ -482,11 +482,40 @@ public class FileControllerIntegrationTest {
         esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
         esTemplate.indexOps(File.class).refresh();
 
+        mockMvc.perform(get("/file?q=name&tags=yo"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(
+                        "{\"total\":2,\"page\":[" +
+                                "{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0,\"tags\":[\"yo\"]}," +
+                                "{\"id\":\"id1\",\"name\":\"yolo.name1.doc\",\"size\":1,\"tags\":[\"yo\"]}]}"));
+    }
+
+    @Test
+    void getByTagsAndName_shouldReturnOkAndPageWithTwoFiles_whenOnlyThreeDocumentIsFoundByNameAndTagsButThereIsMore()
+            throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File("id0", "Yolo.Name0.txt", 0L, Set.of("yo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        indexQuery = new IndexQuery();
+        indexQuery.setId("id1");
+        indexQuery.setObject(new File("id1", "yolo.name1.doc", 1L, Set.of("yo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        indexQuery = new IndexQuery();
+        indexQuery.setId("id-0");
+        indexQuery.setObject(new File("id-0", "name.mp3", 0L, null));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        indexQuery = new IndexQuery();
+        indexQuery.setId("id-1");
+        indexQuery.setObject(new File("id-1", "name.vid", 1L, Set.of("yo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
         mockMvc.perform(get("/file?q=name&tags=yo&size=2"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(
                         "{\"total\":3,\"page\":[" +
-                                "{\"id\":\"id-1\",\"name\":\"nam1.vid\",\"size\":1,\"tags\":[\"yo\"]}," +
-                                "{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0,\"tags\":[\"yo\"]}]}"));
+                                "{\"id\":\"id0\",\"name\":\"Yolo.Name0.txt\",\"size\":0,\"tags\":[\"yo\"]}," +
+                                "{\"id\":\"id1\",\"name\":\"yolo.name1.doc\",\"size\":1,\"tags\":[\"yo\"]}]}"));
     }
 }

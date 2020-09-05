@@ -64,9 +64,11 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
             }
         }
 
+        BoolQueryBuilder shouldMatchName = boolQuery();
         if (name != null) {
-            boolQueryBuilder.should(regexpQuery("name", ".*" + name + ".*"));
-            boolQueryBuilder.should(queryStringQuery(name).field("name"));
+            shouldMatchName.should(regexpQuery("name", ".*" + name + ".*"));
+            shouldMatchName.should(queryStringQuery(name).field("name"));
+            boolQueryBuilder.must(shouldMatchName);
         }
 
         searchQueryBuilder.withFilter(boolQueryBuilder);
