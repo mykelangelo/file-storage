@@ -38,6 +38,11 @@ public class FileController {
         return ResponseEntity.ok(new Id(uploadedFile.getId()));
     }
 
+    @GetMapping("{ID}")
+    public ResponseEntity<File> get(@PathVariable(name = "ID") String id) {
+        return ResponseEntity.ok(fileService.getById(id));
+    }
+
     @DeleteMapping("{ID}")
     public ResponseEntity<ErrorMessage> delete(@PathVariable(name = "ID") String id) {
         fileService.delete(id);

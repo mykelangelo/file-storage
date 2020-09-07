@@ -113,4 +113,12 @@ public class FileService {
         Page<File> found = fileCustomRepository.findAllByTagsContainingAllIn(tags, pageable, name);
         return new SlimFilePage(found.getTotalElements(), found.getContent());
     }
+
+    public File getById(String id) {
+        final Optional<File> fileOptional = fileRepository.findById(id);
+        if (fileOptional.isEmpty()) {
+            throw new FileOperation404Exception();
+        }
+        return fileOptional.get();
+    }
 }

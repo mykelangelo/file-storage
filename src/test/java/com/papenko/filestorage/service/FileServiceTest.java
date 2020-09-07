@@ -41,6 +41,26 @@ class FileServiceTest {
     }
 
     @Test
+    void getById_shouldReturnTheSameFileAsFound_whenFileIsFoundInDb() {
+        final File file = new File("id0", "name", 0L, Set.of("tag1", "tag2"));
+        when(fileRepository.findById("id0")).thenReturn(Optional.of(file));
+
+        final File actual = fileService.getById("id0");
+
+        assertEquals(file, actual);
+    }
+
+    @Test
+    void getById_shouldThrowException_whenNoFileFoundBySuchId() {
+        assertThatExceptionOfType(FileOperation404Exception.class)
+                .isThrownBy(() -> fileService.getById("id0"))
+                .withMessage("file not found");
+
+        verify(fileRepository).findById("id0");
+        verifyNoMoreInteractions(fileRepository);
+    }
+
+    @Test
     void delete_shouldThrowFileDelete404Exception_whenNoFileIsFoundBySuchId() {
         assertThatExceptionOfType(FileOperation404Exception.class)
                 .isThrownBy(() -> fileService.delete("id0"))

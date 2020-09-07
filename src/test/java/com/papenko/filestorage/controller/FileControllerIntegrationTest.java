@@ -166,6 +166,28 @@ public class FileControllerIntegrationTest {
     }
 
     @Test
+    void get_shouldReturnNotFoundAndErrorMessage_whenNoDocumentIsFoundBySuchId() throws Exception {
+        mockMvc.perform(get("/file/{ID}", "id0"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().json("{\"success\":false,\"error\":\"file not found\"}"));
+    }
+
+
+    @Test
+    void get_shouldReturnOkAndSuccessStatus_whenDocumentIsFoundBySuchId() throws Exception {
+        IndexQuery indexQuery = new IndexQuery();
+        indexQuery.setId("id0");
+        indexQuery.setObject(new File(null, "yolo.name0.txt", 0L, Set.of("yo")));
+        esTemplate.index(indexQuery, esTemplate.getIndexCoordinatesFor(File.class));
+        esTemplate.indexOps(File.class).refresh();
+
+        mockMvc.perform(get("/file/{ID}", "id0"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"id\":\"id0\",\"name\":\"yolo.name0.txt\",\"size\":0," +
+                        "\"tags\":[\"yo\"]}"));
+    }
+
+    @Test
     void delete_shouldReturnNotFoundAndErrorMessage_whenNoDocumentIsFoundBySuchId() throws Exception {
         mockMvc.perform(delete("/file/{ID}", "id0"))
                 .andExpect(status().isNotFound())
