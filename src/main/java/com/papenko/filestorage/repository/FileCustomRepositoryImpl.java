@@ -7,13 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHitsIterator;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
@@ -27,34 +27,14 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
 
     @Override
     public Page<File> findAllByTagsContainingAllIn(List<String> tags, Pageable pageable, String name) {
-        try (var closeableIterator = operations.searchForStream(getQueryBuilder(tags, name), File.class)) {
-            return convertToPage(closeableIterator, pageable);
-        }
+        SearchHits<File> searchHits
+                = operations.search(getQueryBuilder(tags, name).withPageable(pageable).build(), File.class);
+        return new PageImpl<>(searchHits.stream()
+                .map(SearchHit::getContent)
+                .collect(Collectors.toList()), pageable, searchHits.getTotalHits());
     }
 
-    Page<File> convertToPage(SearchHitsIterator<File> iterator, Pageable pageable) {
-        int total = 0;
-
-        for (int i = 0; i < pageable.getOffset() && iterator.hasNext(); i++) {
-            iterator.next();
-            total++;
-        }
-
-        List<File> result = new ArrayList<>(pageable.getPageSize());
-
-        for (int i = 0; iterator.hasNext(); i++) {
-            if (i < pageable.getPageSize()) {
-                result.add(iterator.next().getContent());
-            } else {
-                iterator.next();
-            }
-            total++;
-        }
-
-        return new PageImpl<>(result, pageable, total);
-    }
-
-    NativeSearchQuery getQueryBuilder(List<String> tags, String name) {
+    NativeSearchQueryBuilder getQueryBuilder(List<String> tags, String name) {
         NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder();
         BoolQueryBuilder boolQueryBuilder = boolQuery();
 
@@ -73,6 +53,6 @@ public class FileCustomRepositoryImpl implements FileCustomRepository {
 
         searchQueryBuilder.withFilter(boolQueryBuilder);
 
-        return searchQueryBuilder.build();
+        return searchQueryBuilder;
     }
 }

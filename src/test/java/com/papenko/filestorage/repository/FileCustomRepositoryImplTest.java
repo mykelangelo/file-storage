@@ -24,14 +24,14 @@ class FileCustomRepositoryImplTest {
 
     @Test
     void getQueryBuilder_shouldCreateEmptyNativeQueryBuilder_whenTagsListIsNullAndNameIsNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, null);
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, null).build();
 
         assertEquals(boolQuery(), query.getFilter());
     }
 
     @Test
     void getQueryBuilder_shouldCreateProperNativeQueryBuilder_whenTagsListIsNotNullAndNameIsNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), null);
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), null).build();
 
         assertEquals(boolQuery()
                         .must(queryStringQuery("tag1").field("tags"))
@@ -41,7 +41,7 @@ class FileCustomRepositoryImplTest {
 
     @Test
     void getQueryBuilder_shouldCreateProperNativeQueryBuilder_whenTagsListIsNotNullAndNameIsNotNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), "name");
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(List.of("tag1", "tag2"), "name").build();
 
         assertEquals(boolQuery()
                         .must(queryStringQuery("tag1").field("tags"))
@@ -54,7 +54,7 @@ class FileCustomRepositoryImplTest {
 
     @Test
     void getQueryBuilder_shouldCreateProperNativeQueryBuilder_whenTagsListIsNullAndNameIsNotNull() {
-        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, "name");
+        final NativeSearchQuery query = fileCustomRepository.getQueryBuilder(null, "name").build();
 
         assertEquals(boolQuery()
                         .must(boolQuery()
